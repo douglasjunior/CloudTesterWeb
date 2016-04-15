@@ -2,9 +2,33 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:h="http://xmlns.jcp.org/jsf/html"
-      xmlns:p="http://primefaces.org/ui">
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://xmlns.jcp.org/jsf/core">
     <h:head>
         <title>Cloud Tester Web</title>
+        <style>
+            .ui-widget {  
+                font-size: 10pt !important;
+            }
+
+            .ui-layout, .ui-layout-unit{
+                border: none;
+            }
+
+            .test-row {
+                background: #C8FACF;
+            }
+            .test2-row {
+                background: #DEFAE2;
+            }
+
+            .exec-row {
+                background: #CCDAFF;
+            }
+            .exec2-row {
+                background: #E0E9FF;
+            }
+        </style>
     </h:head>
     <h:body>
         <h2>Upload files to test cloud APIs:</h2>
@@ -23,6 +47,117 @@
                 <p:spacer /> 
                 <p:commandButton value="Submit" ajax="false" actionListener="#{indexController.upload}" />
             </h:panelGrid>
+        </h:form>
+        <br />
+        <br />
+        <h2>Uploaded files:</h2>
+        <h:form id="filesDataTable" >
+            <p:commandButton value="Refresh" update=":filesDataTable:files" actionListener="#{indexController.refresh}" />
+            <p:dataTable id="files" var="file" value="#{indexController.files}"
+                         paginatorTemplate="{CurrentPageReport}  {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink}"
+                         paginator="true" rows="20" style="margin-bottom:20px; width: 1000px" emptyMessage="No files found." paginatorPosition="bottom"
+                         resizableColumns="true" sortBy="#{file.dateTime}" sortOrder="descending" currentPageReportTemplate="{currentPage} of {totalPages}"
+                         scrollable="false" tableStyle="table-layout: auto;" rowExpandMode="single"  >
+                <p:column style="width:16px">
+                    <p:rowToggler />
+                </p:column>
+                <p:column sortBy="#{file.name}" >
+                    <f:facet name="header">
+                        <h:outputLabel value="Name" style="white-space:pre-line;"/>
+                    </f:facet>
+                    <h:outputText value="#{file.name}" />
+                </p:column> 
+                <p:column sortBy="#{file.dateTime}">
+                    <f:facet name="header">
+                        <h:outputLabel value="Uploaded at" style="white-space:pre-line;"/>
+                    </f:facet>
+                    <h:outputText value="#{file.dateTime}" >
+                        <f:convertDateTime pattern="dd/MM/yyyy HH:mm:ss" />
+                    </h:outputText>
+                </p:column>
+                <p:column sortBy="#{file.contentLength}">
+                    <f:facet name="header">
+                        <h:outputLabel value="Length (KB)" style="white-space:pre-line;" />
+                    </f:facet>
+                    <h:outputText value="#{file.contentLengthKB}" >
+                        <f:convertNumber pattern="###,###,###,##0.00" />
+                    </h:outputText>
+                </p:column>
+                <p:column sortBy="#{file.contentType}">
+                    <f:facet name="header">
+                        <h:outputLabel value="Type" style="white-space:pre-line;" />
+                    </f:facet>
+                    <h:outputText value="#{file.contentType}" />
+                </p:column>
+                <p:column sortBy="#{file.completed}">
+                    <f:facet name="header">
+                        <h:outputLabel value="Completed" style="white-space:pre-line;"/>
+                    </f:facet>
+                    <h:outputText value="#{file.completed}" />
+                </p:column>
+
+
+                <p:rowExpansion>
+                    <p:outputPanel style="width: 90%; padding-bottom: 20px" >
+                        <h:outputText value="Tests:" />
+                        <p:dataTable var="test" value="#{file.tests}" resizableColumns="true" emptyMessage="No tests found;"
+                                     tableStyle="table-layout: auto;" sortBy="#{test.platform}" 
+                                     rowIndexVar="rowIx" rowStyleClass="#{empty rowIx or rowIx mod 2 ne 0 ? 'test-row' : 'test2-row'}" >
+                            <p:column style="width:16px">
+                                <p:rowToggler />
+                            </p:column>
+                            <p:column headerText="Platform" sortBy="#{test.platform}" >
+                                <h:outputText value="#{test.platform}" />
+                            </p:column>
+                            <p:column headerText="Api" >
+                                <h:outputText value="#{test.api}" />
+                            </p:column>
+                            <p:column headerText="Feature" >
+                                <h:outputText value="#{test.feature}" />
+                            </p:column>
+                            <p:column headerText="Container name" >
+                                <h:outputText value="#{test.containerName}" />
+                            </p:column>
+                            <p:column headerText="Executions" >
+                                <h:outputText value="#{test.executions.size()}" />
+                            </p:column>
+
+                            <p:rowExpansion>
+                                <p:outputPanel style="width: 90%; padding-bottom: 20px" >
+                                    <h:outputText value="Executions:" />
+                                    <p:dataTable var="exec" value="#{test.executions}" resizableColumns="true" emptyMessage="No executions found;"
+                                                 tableStyle="table-layout: auto;" sortBy="#{exec.dateTimeStart}" 
+                                                 rowIndexVar="rowIx" rowStyleClass="#{empty rowIx or rowIx mod 2 ne 0 ? 'exec-row' : 'exec2-row'}">
+                                        <p:column sortBy="#{exec.dateTimeStart}">
+                                            <f:facet name="header">
+                                                <h:outputLabel value="Start" style="white-space:pre-line;"/>
+                                            </f:facet>
+                                            <h:outputText value="#{exec.dateTimeStart}"  >
+                                                <f:convertDateTime pattern="dd/MM/yyyy HH:mm:ss" />
+                                            </h:outputText>
+                                        </p:column>
+                                        <p:column>
+                                            <f:facet name="header">
+                                                <h:outputLabel value="End" style="white-space:pre-line;"/>
+                                            </f:facet>
+                                            <h:outputText value="#{exec.dateTimeEnd}" >
+                                                <f:convertDateTime pattern="dd/MM/yyyy HH:mm:ss"  />
+                                            </h:outputText>
+                                        </p:column>
+                                        <p:column headerText="Duration (Millis)" >
+                                            <h:outputText value="#{exec.duration}" />
+                                        </p:column>
+                                        <p:column headerText="Success" >
+                                            <h:outputText value="#{exec.success}" />
+                                        </p:column>
+                                    </p:dataTable>
+                                </p:outputPanel>
+                            </p:rowExpansion>
+
+                        </p:dataTable>
+                    </p:outputPanel>
+                </p:rowExpansion>
+            </p:dataTable>
         </h:form>
     </h:body>
 </html>

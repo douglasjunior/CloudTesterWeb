@@ -1,8 +1,8 @@
 package br.edu.utfpr.cp.cloudtesterweb.model;
 
 import java.io.Serializable;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -16,7 +16,6 @@ import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
@@ -41,6 +40,7 @@ public class TestEntity implements Serializable {
     @JoinColumn(name = "file_id", nullable = false)
     @ManyToOne(optional = false)
     private FileEntity file;
+
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private ApiType api;
@@ -52,8 +52,9 @@ public class TestEntity implements Serializable {
     private PlatformType platform;
     @Column(nullable = false, length = 255)
     private String containerName;
+
     @OneToMany(mappedBy = "test", orphanRemoval = true, cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
-    private Set<TestExecutionEntity> executions;
+    private List<TestExecutionEntity> executions;
 
     public TestEntity(FileEntity file, PlatformType platform, ApiType api, FeatureType feature, String containerName) {
         this();
@@ -65,7 +66,7 @@ public class TestEntity implements Serializable {
     }
 
     public TestEntity() {
-        executions = new LinkedHashSet<>();
+        executions = new ArrayList<>();
     }
 
     public Long getId() {
@@ -108,11 +109,11 @@ public class TestEntity implements Serializable {
         this.platform = platform;
     }
 
-    public Set<TestExecutionEntity> getExecutions() {
+    public List<TestExecutionEntity> getExecutions() {
         return executions;
     }
 
-    public void setExecutions(Set<TestExecutionEntity> executions) {
+    public void setExecutions(List<TestExecutionEntity> executions) {
         this.executions = executions;
     }
 

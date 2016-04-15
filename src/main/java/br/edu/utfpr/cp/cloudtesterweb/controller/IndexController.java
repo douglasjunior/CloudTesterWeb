@@ -16,6 +16,8 @@ import org.eclipse.persistence.tools.file.FileUtil;
 import org.primefaces.model.UploadedFile;
 import static br.edu.utfpr.cp.cloudtesterweb.util.Constants.*;
 import java.util.Date;
+import java.util.List;
+import javax.transaction.Transactional;
 
 /**
  *
@@ -69,6 +71,17 @@ public class IndexController implements Serializable {
             FacesMessage message = new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", file.getFileName() + " is not uploaded.");
             FacesContext.getCurrentInstance().addMessage(null, message);
         }
+    }
+
+    @Transactional(value = Transactional.TxType.REQUIRED, rollbackOn = {Throwable.class})
+    public List<FileEntity> getFiles() {
+        return dao.createNamedQuerie(FileEntity.FIND_ALL, FileEntity.class).getResultList();
+    }
+
+    @Transactional(value = Transactional.TxType.REQUIRED, rollbackOn = {Throwable.class})
+    public void refresh() {
+        List<FileEntity> files = getFiles();
+        dao.refreshAll(files);
     }
 
     public UploadedFile getFile() {

@@ -33,10 +33,11 @@ public class TestExecutionEntity implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    
+
     @JoinColumn(name = "test_id", nullable = false)
     @ManyToOne(optional = false)
     private TestEntity test;
+
     @Column(name = "dateTimeStart")
     @Temporal(TemporalType.TIMESTAMP)
     private Date dateTimeStart;
@@ -78,6 +79,11 @@ public class TestExecutionEntity implements Serializable {
 
     public void setDateTimeEnd(Date dateTimeEnd) {
         this.dateTimeEnd = dateTimeEnd;
+    }
+
+    public Long getDuration() {
+        return dateTimeStart == null || dateTimeEnd == null ? 0
+                : dateTimeEnd.getTime() - dateTimeStart.getTime();
     }
 
     public Boolean getSuccess() {
