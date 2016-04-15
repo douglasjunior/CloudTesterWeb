@@ -15,6 +15,7 @@ import javax.transaction.UserTransaction;
 import org.eclipse.persistence.tools.file.FileUtil;
 import org.primefaces.model.UploadedFile;
 import static br.edu.utfpr.cp.cloudtesterweb.util.Constants.*;
+import java.util.Date;
 
 /**
  *
@@ -35,13 +36,7 @@ public class IndexController implements Serializable {
 
     private UploadedFile file;
 
-    public UploadedFile getFile() {
-        return file;
-    }
-
-    public void setFile(UploadedFile file) {
-        this.file = file;
-    }
+    private int times = 1;
 
     public void upload() {
         try {
@@ -54,10 +49,12 @@ public class IndexController implements Serializable {
                 FileUtil.copy(is, fos);
             }
             FileEntity entity = new FileEntity();
+            entity.setDateTime(new Date());
             entity.setName(file.getFileName());
             entity.setContentLength(file.getSize());
             entity.setContentType(file.getContentType());
             entity.setContentPath(fileOut.getAbsolutePath());
+            entity.setTestTimesConfig(times);
             dao.insert(entity);
             tx.commit();
             FacesMessage message = new FacesMessage(FacesMessage.SEVERITY_INFO, "Succesful", file.getFileName() + " is uploaded.");
@@ -73,4 +70,21 @@ public class IndexController implements Serializable {
             FacesContext.getCurrentInstance().addMessage(null, message);
         }
     }
+
+    public UploadedFile getFile() {
+        return file;
+    }
+
+    public void setFile(UploadedFile file) {
+        this.file = file;
+    }
+
+    public int getTimes() {
+        return times;
+    }
+
+    public void setTimes(int times) {
+        this.times = times;
+    }
+
 }

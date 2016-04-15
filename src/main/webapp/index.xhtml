@@ -7,18 +7,22 @@
         <title>Cloud Tester Web</title>
     </h:head>
     <h:body>
-        Upload files to test:
+        <h2>Upload files to test cloud APIs:</h2>
+        <br />
         <h:form enctype="multipart/form-data">
             <p:growl id="messages" showDetail="true" globalOnly="true" />
-            <p:panelGrid columns="3" >
-                <p:outputLabel for="file" value="Name:" />
-                <p:fileUpload id="file" value="#{indexController.file}" mode="simple" skinSimple="true" />
+            <h:panelGrid columns="3" >
+                <p:outputLabel for="file" value="Select file" />
+                <p:fileUpload id="file" value="#{indexController.file}" required="true" mode="simple" skinSimple="true" />
                 <p:message for="file" display="icon" />
-                
-                <p:spacer />
-                <p:commandButton value="Submit" ajax="false" actionListener="#{indexController.upload}" />
-            </p:panelGrid>
 
+                <p:outputLabel for="testTime" value="Test times" />
+                <p:inputText id="testTime" type="number" value="#{indexController.times}" required="true" />
+                <p:message for="testTime" display="icon" />
+
+                <p:spacer /> 
+                <p:commandButton value="Submit" ajax="false" actionListener="#{indexController.upload}" />
+            </h:panelGrid>
         </h:form>
     </h:body>
 </html>

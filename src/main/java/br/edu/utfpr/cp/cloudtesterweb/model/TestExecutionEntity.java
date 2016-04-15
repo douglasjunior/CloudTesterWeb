@@ -1,37 +1,48 @@
 package br.edu.utfpr.cp.cloudtesterweb.model;
 
 import java.io.Serializable;
+import java.util.Date;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Index;
+import javax.persistence.JoinColumn;
 import javax.persistence.Lob;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 
 /**
  *
  * @author Douglas
  */
 @Entity
-@Table(name = "execution")
-public class ExecutionEntity implements Serializable {
+@Table(name = "test_execution",
+        indexes = {
+            @Index(columnList = "test_id"),
+            @Index(columnList = "dateTimeStart"),
+            @Index(columnList = "dateTimeEnd")
+        }
+)
+public class TestExecutionEntity implements Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @Column(nullable = false)
-    @Enumerated(EnumType.STRING)
-    private ExecutionApi api;
-    @Column(nullable = false)
-    @Enumerated(EnumType.STRING)
-    private ExecutionType type;
-    @Column(nullable = false)
-    private Long durationTime;
+    
+    @JoinColumn(name = "test_id", nullable = false)
+    @ManyToOne(optional = false)
+    private TestEntity test;
+    @Column(name = "dateTimeStart")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date dateTimeStart;
+    @Column(name = "dateTimeEnd")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date dateTimeEnd;
     @Column(nullable = false)
     private Boolean success;
     @Lob
@@ -45,28 +56,28 @@ public class ExecutionEntity implements Serializable {
         this.id = id;
     }
 
-    public ExecutionApi getApi() {
-        return api;
+    public TestEntity getTest() {
+        return test;
     }
 
-    public void setApi(ExecutionApi api) {
-        this.api = api;
+    public void setTest(TestEntity test) {
+        this.test = test;
     }
 
-    public ExecutionType getType() {
-        return type;
+    public Date getDateTimeStart() {
+        return dateTimeStart;
     }
 
-    public void setType(ExecutionType type) {
-        this.type = type;
+    public void setDateTimeStart(Date dateTimeStart) {
+        this.dateTimeStart = dateTimeStart;
     }
 
-    public Long getDurationTime() {
-        return durationTime;
+    public Date getDateTimeEnd() {
+        return dateTimeEnd;
     }
 
-    public void setDurationTime(Long durationTime) {
-        this.durationTime = durationTime;
+    public void setDateTimeEnd(Date dateTimeEnd) {
+        this.dateTimeEnd = dateTimeEnd;
     }
 
     public Boolean getSuccess() {
@@ -95,10 +106,10 @@ public class ExecutionEntity implements Serializable {
     @Override
     public boolean equals(Object object) {
         // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof ExecutionEntity)) {
+        if (!(object instanceof TestExecutionEntity)) {
             return false;
         }
-        ExecutionEntity other = (ExecutionEntity) object;
+        TestExecutionEntity other = (TestExecutionEntity) object;
         if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
             return false;
         }
