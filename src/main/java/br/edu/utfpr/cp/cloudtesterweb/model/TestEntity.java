@@ -26,7 +26,7 @@ import javax.persistence.Table;
 @Entity
 @Table(name = "test",
         indexes = {
-            @Index(columnList = "file_id")
+            @Index(columnList = "file_id", name = "idx_test_file_id")
         }
 )
 @NamedQueries({})

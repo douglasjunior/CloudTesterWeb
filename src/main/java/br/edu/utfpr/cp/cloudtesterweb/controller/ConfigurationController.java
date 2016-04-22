@@ -2,6 +2,7 @@ package br.edu.utfpr.cp.cloudtesterweb.controller;
 
 import br.edu.utfpr.cp.cloudtester.aws.AWSFeatureManagerFactory;
 import br.edu.utfpr.cp.cloudtester.azure.AzureFeatureManagerFactory;
+import br.edu.utfpr.cp.cloudtester.jclouds.JCloudFeatureManagerFactory;
 import br.edu.utfpr.cp.cloudtester.tool.Authentication;
 import br.edu.utfpr.cp.cloudtesterweb.model.ApiType;
 import br.edu.utfpr.cp.cloudtesterweb.model.FeatureType;
@@ -71,20 +72,20 @@ public class ConfigurationController {
                 credentials.getProperty(PROP_CREDENTIAL_AWS),
                 PROVIDER_AWS);
         String containerAWS = credentials.getProperty(PROP_CONTAINER_NAME_AWS);
-//        // jclouds AZURE
-//        configurations.add(new TestConfiguration(new JCloudFeatureManagerFactory(authAzure),
-//                containerAzure,
-//                PlatformType.AZURE,
-//                ApiType.JCLOUDS,
-//                FeatureType.STORE_UPLOAD, FeatureType.STORE_DOWNLOAD
-//        ));
-//        // jclouds AWS
-//        configurations.add(new TestConfiguration(new JCloudFeatureManagerFactory(authAWS),
-//                containerAWS,
-//                PlatformType.AWS,
-//                ApiType.JCLOUDS,
-//                 FeatureType.STORE_UPLOAD, FeatureType.STORE_DOWNLOAD
-//        ));
+        // jclouds AZURE
+        configurations.add(new TestConfiguration(new JCloudFeatureManagerFactory(authAzure),
+                containerAzure,
+                PlatformType.AZURE,
+                ApiType.JCLOUDS,
+                FeatureType.STORE_UPLOAD, FeatureType.STORE_DOWNLOAD
+        ));
+        // jclouds AWS
+        configurations.add(new TestConfiguration(new JCloudFeatureManagerFactory(authAWS),
+                containerAWS,
+                PlatformType.AWS,
+                ApiType.JCLOUDS,
+                FeatureType.STORE_UPLOAD, FeatureType.STORE_DOWNLOAD
+        ));
         // Azure native
         configurations.add(new TestConfiguration(new AzureFeatureManagerFactory(authAzure),
                 containerAzure,

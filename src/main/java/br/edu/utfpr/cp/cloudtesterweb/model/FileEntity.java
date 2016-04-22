@@ -26,9 +26,9 @@ import javax.persistence.TemporalType;
 @Entity
 @Table(name = "file",
         indexes = {
-            @Index(columnList = "dateTime"),
-            @Index(columnList = "testTimesConfig"),
-            @Index(columnList = "completed")
+            @Index(columnList = "dateTime", name = "idx_file_dateTime"),
+            @Index(columnList = "testTimesConfig", name = "idx_file_testTimesConfig"),
+            @Index(columnList = "completed", name = "idx_file_completed")
         })
 @NamedQueries({
     @NamedQuery(name = FileEntity.FIND_TO_EXECUTE,

@@ -22,9 +22,9 @@ import javax.persistence.TemporalType;
 @Entity
 @Table(name = "test_execution",
         indexes = {
-            @Index(columnList = "test_id"),
-            @Index(columnList = "dateTimeStart"),
-            @Index(columnList = "dateTimeEnd")
+            @Index(columnList = "test_id", name = "idx_test_execution_test_id"),
+            @Index(columnList = "dateTimeStart", name = "idx_test_execution_dateTimeStart"),
+            @Index(columnList = "dateTimeEnd", name = "idx_test_execution_dateTimeEnd")
         }
 )
 public class TestExecutionEntity implements Serializable {

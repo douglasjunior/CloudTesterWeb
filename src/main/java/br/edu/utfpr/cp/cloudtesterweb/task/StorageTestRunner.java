@@ -5,7 +5,7 @@ import br.edu.utfpr.cp.cloudtester.tool.Resource;
 import br.edu.utfpr.cp.cloudtester.tool.ResourceFile;
 import br.edu.utfpr.cp.cloudtester.tool.StoreManager;
 import br.edu.utfpr.cp.cloudtesterweb.controller.ConfigurationController;
-import br.edu.utfpr.cp.cloudtesterweb.controller.Dao;
+import br.edu.utfpr.cp.cloudtesterweb.controller.DaoStateless;
 import br.edu.utfpr.cp.cloudtesterweb.model.ApiType;
 import br.edu.utfpr.cp.cloudtesterweb.model.FeatureType;
 import br.edu.utfpr.cp.cloudtesterweb.model.TestEntity;
@@ -40,7 +40,7 @@ public class StorageTestRunner implements Serializable {
     private ConfigurationController configurationController;
 
     @Inject
-    private Dao dao;
+    private DaoStateless dao;
 
     public void run() {
         UserTransaction tx = context.getUserTransaction();

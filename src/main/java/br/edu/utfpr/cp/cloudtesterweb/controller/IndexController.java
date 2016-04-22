@@ -12,23 +12,23 @@ import javax.inject.Named;
 import javax.faces.view.ViewScoped;
 import javax.inject.Inject;
 import javax.transaction.UserTransaction;
-import org.eclipse.persistence.tools.file.FileUtil;
 import org.primefaces.model.UploadedFile;
 import static br.edu.utfpr.cp.cloudtesterweb.util.Constants.*;
 import java.util.Date;
 import java.util.List;
 import javax.transaction.Transactional;
+import org.apache.commons.io.IOUtils;
 
 /**
  *
  * @author Douglas
  */
-@Named(value = "indexController")
+@Named
 @ViewScoped
 public class IndexController implements Serializable {
 
     @Inject
-    private Dao dao;
+    private DaoStatefull dao;
 
     @Resource
     private UserTransaction tx;
@@ -48,7 +48,7 @@ public class IndexController implements Serializable {
             File fileOut = new File(directory, file.getFileName());
             try (FileOutputStream fos = new FileOutputStream(fileOut);
                     InputStream is = file.getInputstream();) {
-                FileUtil.copy(is, fos);
+                IOUtils.copy(is, fos);
             }
             FileEntity entity = new FileEntity();
             entity.setDateTime(new Date());
