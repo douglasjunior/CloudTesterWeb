@@ -36,13 +36,14 @@ Implementação da biblioteca [CloudTester](https://github.com/douglasjunior/Clo
  CONTAINER_NAME_AWS = cloudtester-utfpr #[nome do Bucket criado no S3]
  ```
  *Obs: Substitua os valores de exemplo pelos valores de suas credenciais. Não compartilhe suas credenciais com terceiros.*
-2. Configure o JDBC e o Datasource no servidor `Weldfly 10`. Exemplo [aqui](https://github.com/douglasjunior/TestWildfly).
+ 
+2. Configure o JDBC e o Datasource no servidor `Wildfly 10`. Exemplo [aqui](https://github.com/douglasjunior/TestWildfly).
 
-3. Implante a ferramenta em um servidor `Weldfly 10 Java EE 7 Full`
+3. Implante a ferramenta em um servidor `Wildfly 10 Java EE 7 Full`
 
 ## Considerações
-- Devido a uma incompatibilidade entre a `jclouds` e o `WELD`, a ferramenta não pode ser implantada no Glassfish, por isso a escolha do Wildfly.
-- A implementação `JPA` disponível no Wildfly por padrão é o `Hibernate`, e na tentativa de configuração do `Eclipselink` vários problemas foram encontrados. Vide (guia de referência)[https://docs.jboss.org/author/display/WFLY10/JPA+Reference+Guide#JPAReferenceGuide-UsingEclipseLink];
+- Devido a uma incompatibilidade entre a `jclouds` e o `WELD`, a ferramenta não pode ser implantada no `Glassfish`, por isso a escolha do `Wildfly`.
+- A implementação `JPA` disponível no `Wildfly` por padrão é o `Hibernate`, e na tentativa de configuração do `Eclipselink` vários problemas foram encontrados. Vide [guia de referência](https://docs.jboss.org/author/display/WFLY10/JPA+Reference+Guide#JPAReferenceGuide-UsingEclipseLink)
 
  
  
