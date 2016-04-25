@@ -1,4 +1,4 @@
-package br.edu.utfpr.cp.cloudtesterweb.controller;
+package br.edu.utfpr.cp.cloudtesterweb.dao;
 
 import java.io.Serializable;
 import java.util.List;
@@ -9,7 +9,7 @@ import javax.persistence.TypedQuery;
  *
  * @author Douglas
  */
-public abstract class Dao implements Serializable {
+abstract class Dao implements Serializable {
 
     public void insert(Object entity) {
         getEM().persist(entity);

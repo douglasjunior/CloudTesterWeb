@@ -1,5 +1,6 @@
 package br.edu.utfpr.cp.cloudtesterweb.controller;
 
+import br.edu.utfpr.cp.cloudtesterweb.dao.DaoStatefull;
 import br.edu.utfpr.cp.cloudtesterweb.model.FileEntity;
 import java.io.File;
 import java.io.FileOutputStream;

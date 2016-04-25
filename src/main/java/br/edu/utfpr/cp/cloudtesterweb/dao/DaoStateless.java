@@ -1,4 +1,4 @@
-package br.edu.utfpr.cp.cloudtesterweb.controller;
+package br.edu.utfpr.cp.cloudtesterweb.dao;
 
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
