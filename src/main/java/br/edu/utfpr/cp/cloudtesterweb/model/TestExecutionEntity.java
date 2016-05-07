@@ -11,9 +11,11 @@ import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
+import javax.persistence.PreRemove;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+import javax.persistence.Transient;
 
 /**
  *
@@ -46,8 +48,9 @@ public class TestExecutionEntity implements Serializable {
     private Date dateTimeEnd;
     @Column(nullable = false)
     private Boolean success;
-    @Lob
-    private String errorMessage;
+    private Long errorMessageId;
+    @Transient
+    private ErrorMessage errorMessage;
 
     public Long getId() {
         return id;
@@ -94,11 +97,19 @@ public class TestExecutionEntity implements Serializable {
         this.success = success;
     }
 
-    public String getErrorMessage() {
+    public Long getErrorMessageId() {
+        return errorMessageId;
+    }
+
+    public void setErrorMessageId(Long errorMessageId) {
+        this.errorMessageId = errorMessageId;
+    }
+
+    public ErrorMessage getErrorMessage() {
         return errorMessage;
     }
 
-    public void setErrorMessage(String errorMessage) {
+    public void setErrorMessage(ErrorMessage errorMessage) {
         this.errorMessage = errorMessage;
     }
 
@@ -121,4 +132,5 @@ public class TestExecutionEntity implements Serializable {
         }
         return true;
     }
+
 }

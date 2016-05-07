@@ -4,7 +4,7 @@ package br.edu.utfpr.cp.cloudtesterweb.model;
  *
  * @author Douglas
  */
-public enum FeatureType {
+public enum ServiceType {
     STORE_UPLOAD,
     STORE_DOWNLOAD;
 }

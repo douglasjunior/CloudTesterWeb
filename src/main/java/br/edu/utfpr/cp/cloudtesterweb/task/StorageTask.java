@@ -13,10 +13,10 @@ import javax.inject.Inject;
  */
 @Startup
 @Singleton
-public class StorageTestTask implements Serializable {
+public class StorageTask implements Serializable {
 
     @Inject
-    private StorageTestRunner runner;
+    private StorageRunner runner;
 
     @Schedule(second = "*/5", minute = "*", hour = "*", persistent = false)
     public void task() {

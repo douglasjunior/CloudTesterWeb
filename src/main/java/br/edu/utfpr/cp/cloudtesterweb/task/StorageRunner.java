@@ -1,17 +1,18 @@
 package br.edu.utfpr.cp.cloudtesterweb.task;
 
-import br.edu.utfpr.cp.cloudtester.tool.FeatureManagerFactory;
+import br.edu.utfpr.cp.cloudtester.tool.ServiceManagerFactory;
 import br.edu.utfpr.cp.cloudtester.tool.Resource;
 import br.edu.utfpr.cp.cloudtester.tool.ResourceFile;
 import br.edu.utfpr.cp.cloudtester.tool.StoreManager;
-import br.edu.utfpr.cp.cloudtesterweb.controller.ConfigurationController;
+import br.edu.utfpr.cp.cloudtesterweb.controller.ApiController;
 import br.edu.utfpr.cp.cloudtesterweb.dao.DaoStateless;
 import br.edu.utfpr.cp.cloudtesterweb.model.ApiType;
-import br.edu.utfpr.cp.cloudtesterweb.model.FeatureType;
+import br.edu.utfpr.cp.cloudtesterweb.model.ServiceType;
 import br.edu.utfpr.cp.cloudtesterweb.model.TestEntity;
 import br.edu.utfpr.cp.cloudtesterweb.model.FileEntity;
 import br.edu.utfpr.cp.cloudtesterweb.model.PlatformType;
-import br.edu.utfpr.cp.cloudtesterweb.model.TestConfiguration;
+import br.edu.utfpr.cp.cloudtesterweb.model.ApiConfiguration;
+import br.edu.utfpr.cp.cloudtesterweb.model.ErrorMessage;
 import br.edu.utfpr.cp.cloudtesterweb.model.TestExecutionEntity;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -31,13 +32,13 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
  */
 @Stateless
 @TransactionManagement(TransactionManagementType.BEAN)
-public class StorageTestRunner implements Serializable {
+public class StorageRunner implements Serializable {
 
     @javax.annotation.Resource
     private EJBContext context;
 
     @Inject
-    private ConfigurationController configurationController;
+    private ApiController configurationController;
 
     @Inject
     private DaoStateless dao;
@@ -46,18 +47,18 @@ public class StorageTestRunner implements Serializable {
         UserTransaction tx = context.getUserTransaction();
         try {
             tx.begin();
-            List<FileEntity> files = dao.createNamedQuerie(FileEntity.FIND_TO_EXECUTE, FileEntity.class).getResultList();
+            List<FileEntity> files = dao.createNamedQuery(FileEntity.FIND_TO_EXECUTE, FileEntity.class).getResultList();
             if (!files.isEmpty()) {
                 FileEntity file = files.get(0);
                 // percorre cada configuração para execução
-                for (TestConfiguration config : configurationController.getConfigurations()) {
-                    FeatureManagerFactory factory = config.getFactory();
+                for (ApiConfiguration config : configurationController.getConfigurations()) {
+                    ServiceManagerFactory factory = config.getFactory();
                     PlatformType platform = config.getPlatform();
                     ApiType api = config.getApi();
                     String containerName = config.getContainerName();
-                    // percorre cada feature configurada
-                    for (FeatureType feature : config.getFeatures()) {
-                        TestEntity test = new TestEntity(file, platform, api, feature, containerName);
+                    // percorre cada service configurado
+                    for (ServiceType service : config.getServices()) {
+                        TestEntity test = new TestEntity(file, platform, api, service, containerName);
                         dao.insert(test);
                         executeTest(test, factory);
                     }
@@ -75,8 +76,8 @@ public class StorageTestRunner implements Serializable {
         }
     }
 
-    private void executeTest(TestEntity test, FeatureManagerFactory factory) {
-        switch (test.getFeature()) {
+    private void executeTest(TestEntity test, ServiceManagerFactory factory) {
+        switch (test.getService()) {
             case STORE_DOWNLOAD:
             case STORE_UPLOAD:
                 downloadUploadTest(test, factory);
@@ -84,8 +85,8 @@ public class StorageTestRunner implements Serializable {
         }
     }
 
-    private void downloadUploadTest(TestEntity test, FeatureManagerFactory factory) {
-        System.out.println("Testing feature " + test.getFeature() + " in " + factory);
+    private void downloadUploadTest(TestEntity test, ServiceManagerFactory factory) {
+        System.out.println("Testing " + test.getService() + " service in " + factory);
         FileEntity file = test.getFile();
         Date start = null, end = null;
         List<TestExecutionEntity> executions = new ArrayList<>();
@@ -96,23 +97,23 @@ public class StorageTestRunner implements Serializable {
                 try {
                     Resource resource = new ResourceFile(file.getContentPath());
                     start = new Date();
-                    if (test.getFeature() == FeatureType.STORE_UPLOAD) {
+                    if (test.getService() == ServiceType.STORE_UPLOAD) {
                         storeManager.stores(resource, test.getContainerName());
                     } else {
                         storeManager.retrieves(file.getName(), test.getContainerName());
                     }
                     end = new Date();
-                    System.out.println(test.getFeature() + " file " + file.getName() + " in " + diff(start, end) + " millis");
+                    System.out.println(test.getService() + " file " + file.getName() + " in " + diff(start, end) + " millis");
                     exec.setDateTimeStart(start);
                     exec.setDateTimeEnd(end);
                     exec.setSuccess(true);
                 } catch (Exception ex) {
-                    ex.printStackTrace();
+                    System.err.println(ex.toString());
                     String error = ExceptionUtils.getStackTrace(ex);
                     exec.setDateTimeStart(start);
                     exec.setDateTimeEnd(end);
                     exec.setSuccess(false);
-                    exec.setErrorMessage(error);
+                    exec.setErrorMessage(new ErrorMessage(error));
                 }
                 executions.add(exec);
             }
@@ -129,6 +130,11 @@ public class StorageTestRunner implements Serializable {
     private void insertExecutions(List<TestExecutionEntity> executions) {
         System.out.println("Saving executions: " + executions);
         for (TestExecutionEntity exec : executions) {
+            ErrorMessage em = exec.getErrorMessage();
+            if (em != null) {
+                dao.insert(em);
+                exec.setErrorMessageId(em.getId());
+            }
             dao.insert(exec);
         }
     }

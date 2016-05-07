@@ -46,7 +46,7 @@ public class TestEntity implements Serializable {
     private ApiType api;
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    private FeatureType feature;
+    private ServiceType service;
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private PlatformType platform;
@@ -56,11 +56,11 @@ public class TestEntity implements Serializable {
     @OneToMany(mappedBy = "test", orphanRemoval = true, cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
     private List<TestExecutionEntity> executions;
 
-    public TestEntity(FileEntity file, PlatformType platform, ApiType api, FeatureType feature, String containerName) {
+    public TestEntity(FileEntity file, PlatformType platform, ApiType api, ServiceType service, String containerName) {
         this();
         this.file = file;
         this.api = api;
-        this.feature = feature;
+        this.service = service;
         this.platform = platform;
         this.containerName = containerName;
     }
@@ -93,12 +93,12 @@ public class TestEntity implements Serializable {
         this.api = api;
     }
 
-    public FeatureType getFeature() {
-        return feature;
+    public ServiceType getService() {
+        return service;
     }
 
-    public void setFeature(FeatureType feature) {
-        this.feature = feature;
+    public void setService(ServiceType service) {
+        this.service = service;
     }
 
     public PlatformType getPlatform() {

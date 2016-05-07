@@ -1,15 +1,17 @@
 package br.edu.utfpr.cp.cloudtesterweb.controller;
 
-import br.edu.utfpr.cp.cloudtester.aws.AWSFeatureManagerFactory;
-import br.edu.utfpr.cp.cloudtester.azure.AzureFeatureManagerFactory;
-import br.edu.utfpr.cp.cloudtester.jclouds.JCloudFeatureManagerFactory;
+import br.edu.utfpr.cp.cloudtester.aws.AWSServiceManagerFactory;
+import br.edu.utfpr.cp.cloudtester.azure.AzureServiceManagerFactory;
+import br.edu.utfpr.cp.cloudtester.jclouds.JCloudServiceManagerFactory;
 import br.edu.utfpr.cp.cloudtester.tool.Authentication;
+import br.edu.utfpr.cp.cloudtester.tool.ServiceManagerFactory;
 import br.edu.utfpr.cp.cloudtesterweb.model.ApiType;
-import br.edu.utfpr.cp.cloudtesterweb.model.FeatureType;
+import br.edu.utfpr.cp.cloudtesterweb.model.ServiceType;
 import br.edu.utfpr.cp.cloudtesterweb.model.PlatformType;
-import br.edu.utfpr.cp.cloudtesterweb.model.TestConfiguration;
+import br.edu.utfpr.cp.cloudtesterweb.model.ApiConfiguration;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 import javax.annotation.PostConstruct;
@@ -23,7 +25,7 @@ import javax.ejb.Startup;
  */
 @Startup
 @Singleton
-public class ConfigurationController {
+public class ApiController {
 
     private static final String PROP_IDENTITY_AZURE = "IDENTITY_AZURE";
     private static final String PROP_CREDENTIAL_AZURE = "CREDENTIAL_AZURE";
@@ -38,7 +40,7 @@ public class ConfigurationController {
 
     private final Properties credentials = new Properties();
 
-    private final List<TestConfiguration> configurations = new ArrayList<>();
+    private final List<ApiConfiguration> configurations = new ArrayList<>();
 
     @PostConstruct
     private void startup() {
@@ -72,40 +74,46 @@ public class ConfigurationController {
                 credentials.getProperty(PROP_CREDENTIAL_AWS),
                 PROVIDER_AWS);
         String containerAWS = credentials.getProperty(PROP_CONTAINER_NAME_AWS);
+
         // jclouds AZURE
-        configurations.add(new TestConfiguration(new JCloudFeatureManagerFactory(authAzure),
-                containerAzure,
-                PlatformType.AZURE,
-                ApiType.JCLOUDS,
-                FeatureType.STORE_UPLOAD, FeatureType.STORE_DOWNLOAD
-        ));
+        addConfiguration(new JCloudServiceManagerFactory(authAzure), containerAzure,
+                PlatformType.AZURE, ApiType.JCLOUDS,
+                ServiceType.STORE_UPLOAD, ServiceType.STORE_DOWNLOAD
+        );
         // jclouds AWS
-        configurations.add(new TestConfiguration(new JCloudFeatureManagerFactory(authAWS),
-                containerAWS,
-                PlatformType.AWS,
-                ApiType.JCLOUDS,
-                FeatureType.STORE_UPLOAD, FeatureType.STORE_DOWNLOAD
-        ));
+        addConfiguration(new JCloudServiceManagerFactory(authAWS), containerAWS,
+                PlatformType.AWS, ApiType.JCLOUDS,
+                ServiceType.STORE_UPLOAD, ServiceType.STORE_DOWNLOAD);
         // Azure native
-        configurations.add(new TestConfiguration(new AzureFeatureManagerFactory(authAzure),
-                containerAzure,
-                PlatformType.AZURE,
-                ApiType.AZURE_NATIVE,
-                FeatureType.STORE_UPLOAD, FeatureType.STORE_DOWNLOAD
-        ));
+        addConfiguration(new AzureServiceManagerFactory(authAzure), containerAzure,
+                PlatformType.AZURE, ApiType.AZURE_NATIVE,
+                ServiceType.STORE_UPLOAD, ServiceType.STORE_DOWNLOAD);
         // AWS native
-        configurations.add(new TestConfiguration(new AWSFeatureManagerFactory(authAWS),
-                containerAWS,
-                PlatformType.AWS,
-                ApiType.AWS_NATIVE,
-                FeatureType.STORE_UPLOAD, FeatureType.STORE_DOWNLOAD
-        ));
+        addConfiguration(new AWSServiceManagerFactory(authAWS), containerAWS,
+                PlatformType.AWS, ApiType.AWS_NATIVE,
+                ServiceType.STORE_UPLOAD, ServiceType.STORE_DOWNLOAD);
 
         System.out.println("Configurations: " + configurations);
     }
 
-    public List<TestConfiguration> getConfigurations() {
+    private void addConfiguration(ServiceManagerFactory factory, String containerName, PlatformType platform, ApiType api, ServiceType... services) {
+        configurations.add(new ApiConfiguration(factory, containerName, platform, api, services));
+    }
+
+    public List<ApiConfiguration> getConfigurations() {
         return new ArrayList<>(configurations);
+    }
+
+    public List<ApiConfiguration> getConfigurations(List<PlatformType> platforms, List<ApiType> apis, List<ServiceType> services) {
+        List<ApiConfiguration> configs = new ArrayList<>();
+        for (ApiConfiguration conf : configurations) {
+            if (platforms.contains(conf.getPlatform())
+                    && apis.contains(conf.getApi())
+                    && services.containsAll(Arrays.asList(conf.getServices()))) {
+                configs.add(conf);
+            }
+        }
+        return configs;
     }
 
 }

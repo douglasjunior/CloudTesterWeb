@@ -1,29 +1,29 @@
 package br.edu.utfpr.cp.cloudtesterweb.model;
 
-import br.edu.utfpr.cp.cloudtester.tool.FeatureManagerFactory;
+import br.edu.utfpr.cp.cloudtester.tool.ServiceManagerFactory;
 
 /**
  *
  * @author Douglas
  */
-public class TestConfiguration {
+public class ApiConfiguration {
 
-    private final FeatureManagerFactory factory;
+    private final ServiceManagerFactory factory;
     private final String containerName;
     private final PlatformType platform;
     private final ApiType api;
-    private final FeatureType[] features;
+    private final ServiceType[] services;
 
-    public TestConfiguration(FeatureManagerFactory factory, String containerName,
-            PlatformType platform, ApiType api, FeatureType... features) {
+    public ApiConfiguration(ServiceManagerFactory factory, String containerName,
+            PlatformType platform, ApiType api, ServiceType... services) {
         this.factory = factory;
         this.containerName = containerName;
         this.platform = platform;
         this.api = api;
-        this.features = features;
+        this.services = services;
     }
 
-    public FeatureManagerFactory getFactory() {
+    public ServiceManagerFactory getFactory() {
         return factory;
     }
 
@@ -39,8 +39,8 @@ public class TestConfiguration {
         return api;
     }
 
-    public FeatureType[] getFeatures() {
-        return features;
+    public ServiceType[] getServices() {
+        return services;
     }
 
 }
