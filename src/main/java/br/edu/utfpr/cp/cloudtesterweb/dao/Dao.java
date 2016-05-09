@@ -65,4 +65,7 @@ abstract class Dao implements Serializable {
         }
     }
 
+    public <T> T findById(Class<T> clazz, Object id) {
+        return getEM().find(clazz, id);
+    }
 }

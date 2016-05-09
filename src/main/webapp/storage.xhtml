@@ -92,7 +92,10 @@
                 </p:column>
 
                 <p:column  >
-                    <p:commandButton actionListener="#{storageController.delete(file)}" icon="fa fa-trash" update=":filesDataTable:files messages" />
+                    <p:commandButton actionListener="#{storageController.delete(file)}" icon="fa fa-trash" update=":filesDataTable:files messages" title="Delete" />
+                    <p:commandButton ajax="false" onclick="PrimeFaces.monitorDownload(start, stop);" icon="fa fa-download" title="Download CSV" update="messages">
+                        <p:fileDownload value="#{storageController.downloadCSV(file)}" />
+                    </p:commandButton>
                 </p:column>
 
 
@@ -149,6 +152,11 @@
                                         <p:column headerText="Success" >
                                             <h:outputText value="#{exec.success}" />
                                         </p:column>
+                                        <p:column >
+                                            <p:commandButton icon="fa fa-search" title="View error" update="messages" ajax="true" rendered="#{!exec.success}"
+                                                             actionListener="#{storageController.viewError(exec)}" onsuccess="PF('dialogErrorVar').show();" />
+
+                                        </p:column>
                                     </p:dataTable>
                                 </p:outputPanel>
                             </p:rowExpansion>
@@ -158,6 +166,27 @@
                 </p:rowExpansion>
             </p:dataTable>
         </h:form>
+
+        <p:dialog header="Error message" widgetVar="dialogErrorVar" minHeight="40" modal="true" 
+                  appendTo="@(body)" onShow="dialogErrorVarOpen();" >
+            <h:form>
+                <p:inputTextarea readonly="true" value="#{storageController.errorMessage}" cols="100" rows="20" autoResize="false"  />
+                <p:remoteCommand name="dialogErrorVarOpen" update="@form"  />
+            </h:form>
+        </p:dialog>
+
+        <p:dialog modal="true" widgetVar="dialogDownloadVar" header="Downloading..." draggable="false" closable="false" resizable="false">
+            <p:graphicImage library="image" name="ajaxloadingbar.gif" />
+        </p:dialog>
+
+        <script type="text/javascript">
+            function start() {
+                PF('dialogDownloadVar').show();
+            }
+            function stop() {
+                PF('dialogDownloadVar').hide();
+            }
+        </script>
     </ui:define>
 </ui:composition>
 

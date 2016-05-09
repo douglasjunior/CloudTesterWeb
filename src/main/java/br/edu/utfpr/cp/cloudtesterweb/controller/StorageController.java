@@ -1,8 +1,11 @@
 package br.edu.utfpr.cp.cloudtesterweb.controller;
 
+import br.edu.utfpr.cp.cloudtesterweb.csv.StorageHeaders;
 import br.edu.utfpr.cp.cloudtesterweb.dao.DaoStatefull;
-import br.edu.utfpr.cp.cloudtesterweb.model.ErrorMessage;
+import br.edu.utfpr.cp.cloudtesterweb.model.ErrorMessageEntity;
 import br.edu.utfpr.cp.cloudtesterweb.model.FileEntity;
+import br.edu.utfpr.cp.cloudtesterweb.model.TestEntity;
+import br.edu.utfpr.cp.cloudtesterweb.model.TestExecutionEntity;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
@@ -16,10 +19,17 @@ import javax.inject.Inject;
 import javax.transaction.UserTransaction;
 import org.primefaces.model.UploadedFile;
 import static br.edu.utfpr.cp.cloudtesterweb.util.Constants.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.OutputStreamWriter;
 import java.util.Date;
 import java.util.List;
 import javax.transaction.Transactional;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.io.IOUtils;
+import org.primefaces.model.DefaultStreamedContent;
+import org.primefaces.model.StreamedContent;
 
 /**
  *
@@ -36,13 +46,12 @@ public class StorageController implements Serializable {
     private UserTransaction tx;
 
     private List<FileEntity> files;
+    private String errorMessage = "";
+    private UploadedFile uploadedFile;
+    private int times = 1;
 
     public StorageController() {
     }
-
-    private UploadedFile uploadedFile;
-
-    private int times = 1;
 
     public void upload() {
         try {
@@ -82,7 +91,7 @@ public class StorageController implements Serializable {
         System.out.println("Delete: " + file);
         try {
             tx.begin();
-            dao.createNamedQuery(ErrorMessage.DELETE_BY_FILE, new String[]{"file"}, new Object[]{file}).executeUpdate();
+            dao.createNamedQuery(ErrorMessageEntity.DELETE_BY_FILE, new String[]{"file"}, new Object[]{file}).executeUpdate();
             dao.delete(file);
             tx.commit();
             files.remove(file);
@@ -114,6 +123,45 @@ public class StorageController implements Serializable {
         dao.refreshAll(files);
     }
 
+    @Transactional(value = Transactional.TxType.REQUIRED, rollbackOn = {Throwable.class})
+    public void viewError(TestExecutionEntity exec) {
+        ErrorMessageEntity error = dao.findById(ErrorMessageEntity.class, exec.getErrorMessageId());
+        if (error != null) {
+            errorMessage = error.getMessage();
+        } else {
+            errorMessage = "";
+        }
+    }
+
+    @Transactional(value = Transactional.TxType.REQUIRED, rollbackOn = {Throwable.class})
+    public StreamedContent downloadCSV(FileEntity file) {
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                OutputStreamWriter osw = new OutputStreamWriter(baos);
+                CSVPrinter printer = CSVFormat.DEFAULT.withHeader(StorageHeaders.class).print(osw)) {
+
+            for (TestEntity test : file.getTests()) {
+                for (TestExecutionEntity exec : test.getExecutions()) {
+                    printer.print(test.getPlatform());
+                    printer.print(test.getApi());
+                    printer.print(test.getService());
+                    printer.print(exec.getDuration());
+                    printer.print(exec.getSuccess());
+                    printer.println();
+                }
+            }
+            printer.flush();
+
+            InputStream stream = new ByteArrayInputStream(baos.toByteArray());
+            StreamedContent content = new DefaultStreamedContent(stream, "text/csv", file.getName() + ".csv");
+            return content;
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            FacesMessage message = new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", "Download failed.");
+            FacesContext.getCurrentInstance().addMessage(null, message);
+        }
+        return null;
+    }
+
     public UploadedFile getFile() {
         return uploadedFile;
     }
@@ -130,4 +178,7 @@ public class StorageController implements Serializable {
         this.times = times;
     }
 
+    public String getErrorMessage() {
+        return errorMessage;
+    }
 }

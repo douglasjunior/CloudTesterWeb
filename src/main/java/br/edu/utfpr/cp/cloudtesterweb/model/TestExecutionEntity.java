@@ -48,7 +48,7 @@ public class TestExecutionEntity implements Serializable {
     private Boolean success;
     private Long errorMessageId;
     @Transient
-    private ErrorMessage errorMessage;
+    private ErrorMessageEntity errorMessage;
 
     public Long getId() {
         return id;
@@ -103,11 +103,11 @@ public class TestExecutionEntity implements Serializable {
         this.errorMessageId = errorMessageId;
     }
 
-    public ErrorMessage getErrorMessage() {
+    public ErrorMessageEntity getErrorMessage() {
         return errorMessage;
     }
 
-    public void setErrorMessage(ErrorMessage errorMessage) {
+    public void setErrorMessage(ErrorMessageEntity errorMessage) {
         this.errorMessage = errorMessage;
     }
 

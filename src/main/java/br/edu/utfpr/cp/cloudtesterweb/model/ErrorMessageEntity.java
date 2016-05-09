@@ -14,15 +14,15 @@ import javax.persistence.Table;
  *
  * @author Douglas
  */
-@Entity
+@Entity 
 @Table(name = "errorMessage")
 @NamedQueries({
-    @NamedQuery(name = ErrorMessage.DELETE_BY_FILE,
-            query = "DELETE FROM ErrorMessage e WHERE EXISTS (SELECT t FROM TestExecutionEntity t WHERE t.test.file = :file AND t.errorMessageId = e.id)")
+    @NamedQuery(name = ErrorMessageEntity.DELETE_BY_FILE,
+            query = "DELETE FROM ErrorMessageEntity e WHERE EXISTS (SELECT t FROM TestExecutionEntity t WHERE t.test.file = :file AND t.errorMessageId = e.id)")
 })
-public class ErrorMessage implements Serializable {
+public class ErrorMessageEntity implements Serializable {
 
-    public static final String DELETE_BY_FILE = "ErrorMessage.deleteByFile";
+    public static final String DELETE_BY_FILE = "ErrorMessageEntity.deleteByFile";
 
     private static final long serialVersionUID = 1L;
     @Id
@@ -32,10 +32,10 @@ public class ErrorMessage implements Serializable {
     @Lob
     private String message;
 
-    public ErrorMessage() {
+    public ErrorMessageEntity() {
     }
 
-    public ErrorMessage(String message) {
+    public ErrorMessageEntity(String message) {
         this.message = message;
     }
 
@@ -65,10 +65,10 @@ public class ErrorMessage implements Serializable {
     @Override
     public boolean equals(Object object) {
         // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof ErrorMessage)) {
+        if (!(object instanceof ErrorMessageEntity)) {
             return false;
         }
-        ErrorMessage other = (ErrorMessage) object;
+        ErrorMessageEntity other = (ErrorMessageEntity) object;
         if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
             return false;
         }

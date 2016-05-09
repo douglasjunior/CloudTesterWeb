@@ -12,7 +12,7 @@ import br.edu.utfpr.cp.cloudtesterweb.model.TestEntity;
 import br.edu.utfpr.cp.cloudtesterweb.model.FileEntity;
 import br.edu.utfpr.cp.cloudtesterweb.model.PlatformType;
 import br.edu.utfpr.cp.cloudtesterweb.model.ApiConfiguration;
-import br.edu.utfpr.cp.cloudtesterweb.model.ErrorMessage;
+import br.edu.utfpr.cp.cloudtesterweb.model.ErrorMessageEntity;
 import br.edu.utfpr.cp.cloudtesterweb.model.TestExecutionEntity;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -113,7 +113,7 @@ public class StorageRunner implements Serializable {
                     exec.setDateTimeStart(start);
                     exec.setDateTimeEnd(end);
                     exec.setSuccess(false);
-                    exec.setErrorMessage(new ErrorMessage(error));
+                    exec.setErrorMessage(new ErrorMessageEntity(error));
                 }
                 executions.add(exec);
             }
@@ -130,8 +130,8 @@ public class StorageRunner implements Serializable {
     private void insertExecutions(List<TestExecutionEntity> executions) {
         System.out.println("Saving executions: " + executions);
         for (TestExecutionEntity exec : executions) {
-            ErrorMessage em = exec.getErrorMessage();
-            if (em != null) {
+            if (!exec.getSuccess()) {
+                ErrorMessageEntity em = exec.getErrorMessage();
                 dao.insert(em);
                 exec.setErrorMessageId(em.getId());
             }
