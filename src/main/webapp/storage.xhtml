@@ -11,21 +11,7 @@
     </ui:define>
 
     <ui:define name="header">
-        <style>
-            .test-row {
-                background: #C8FACF;
-            }
-            .test2-row {
-                background: #DEFAE2;
-            }
-
-            .exec-row {
-                background: #CCDAFF;
-            }
-            .exec2-row {
-                background: #E0E9FF;
-            }
-        </style>
+        <h:outputStylesheet library="css" name="datatable.css" />
     </ui:define>
 
     <ui:define name="content">
@@ -92,7 +78,9 @@
                 </p:column>
 
                 <p:column  >
-                    <p:commandButton actionListener="#{storageController.delete(file)}" icon="fa fa-trash" update=":filesDataTable:files messages" title="Delete" />
+                    <p:commandButton actionListener="#{storageController.delete(file)}" icon="fa fa-trash" update=":filesDataTable:files messages" title="Delete" >
+                        <p:confirm header="Confirmation" message="Are you sure?" icon="ui-icon-alert" />
+                    </p:commandButton>
                     <p:commandButton ajax="false" onclick="PrimeFaces.monitorDownload(start, stop);" icon="fa fa-download" title="Download CSV" update="messages">
                         <p:fileDownload value="#{storageController.downloadCSV(file)}" />
                     </p:commandButton>
@@ -104,7 +92,7 @@
                         <h:outputText value="Tests:" />
                         <p:dataTable var="test" value="#{file.tests}" resizableColumns="true" emptyMessage="No tests found;"
                                      tableStyle="table-layout: auto;" sortBy="#{test.platform}" 
-                                     rowIndexVar="rowIx" rowStyleClass="#{empty rowIx or rowIx mod 2 ne 0 ? 'test-row' : 'test2-row'}" >
+                                     rowIndexVar="rowIx" rowStyleClass="#{empty rowIx or rowIx mod 2 ne 0 ? 'subtable-a-row' : 'subtable-a2-row'}" >
                             <p:column style="width:16px">
                                 <p:rowToggler />
                             </p:column>
@@ -129,7 +117,7 @@
                                     <h:outputText value="Executions:" />
                                     <p:dataTable var="exec" value="#{test.executions}" resizableColumns="true" emptyMessage="No executions found;"
                                                  tableStyle="table-layout: auto;" sortBy="#{exec.dateTimeStart}" 
-                                                 rowIndexVar="rowIx" rowStyleClass="#{empty rowIx or rowIx mod 2 ne 0 ? 'exec-row' : 'exec2-row'}">
+                                                 rowIndexVar="rowIx" rowStyleClass="#{empty rowIx or rowIx mod 2 ne 0 ? 'subtable-b-row' : 'subtable-b2-row'}">
                                         <p:column sortBy="#{exec.dateTimeStart}">
                                             <f:facet name="header">
                                                 <h:outputLabel value="Start" style="white-space:pre-line;"/>
@@ -175,9 +163,15 @@
             </h:form>
         </p:dialog>
 
-        <p:dialog modal="true" widgetVar="dialogDownloadVar" header="Downloading..." draggable="false" closable="false" resizable="false">
+        <p:dialog modal="true" widgetVar="dialogDownloadVar" header="Downloading..." draggable="false" 
+                  appendTo="@(body)" closable="false" resizable="false">
             <p:graphicImage library="image" name="ajaxloadingbar.gif" />
         </p:dialog>
+
+        <p:confirmDialog global="true" showEffect="fade" hideEffect="fade" appendTo="@(body)">
+            <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" style="float: right" icon="ui-icon-close" />
+            <p:commandButton value="Yes" type="button" styleClass="ui-confirmdialog-yes" style="float: right"  icon="ui-icon-check" />
+        </p:confirmDialog>
 
         <script type="text/javascript">
             function start() {

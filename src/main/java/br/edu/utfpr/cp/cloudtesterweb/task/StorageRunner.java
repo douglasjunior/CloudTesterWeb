@@ -3,7 +3,6 @@ package br.edu.utfpr.cp.cloudtesterweb.task;
 import br.edu.utfpr.cp.cloudtester.tool.ServiceManagerFactory;
 import br.edu.utfpr.cp.cloudtester.tool.Resource;
 import br.edu.utfpr.cp.cloudtester.tool.ResourceFile;
-import br.edu.utfpr.cp.cloudtester.tool.StoreManager;
 import br.edu.utfpr.cp.cloudtesterweb.controller.ApiController;
 import br.edu.utfpr.cp.cloudtesterweb.dao.DaoStateless;
 import br.edu.utfpr.cp.cloudtesterweb.model.ApiType;
@@ -25,6 +24,7 @@ import javax.ejb.TransactionManagementType;
 import javax.inject.Inject;
 import javax.transaction.UserTransaction;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import br.edu.utfpr.cp.cloudtester.tool.StorageManager;
 
 /**
  *
@@ -90,7 +90,7 @@ public class StorageRunner implements Serializable {
         FileEntity file = test.getFile();
         Date start = null, end = null;
         List<TestExecutionEntity> executions = new ArrayList<>();
-        try (StoreManager storeManager = factory.createStoreManager()) {
+        try (StorageManager storeManager = factory.createStorageManager()) {
             for (int i = 0; i < file.getTestTimesConfig(); i++) {
                 TestExecutionEntity exec = new TestExecutionEntity();
                 exec.setTest(test);
