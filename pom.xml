@@ -14,10 +14,12 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
-        <jclouds.version>1.9.2</jclouds.version>
-        <azure-storage.version>4.1.0</azure-storage.version>
-        <aws-s3.version>1.10.66</aws-s3.version>
+
         <hibernate.version>5.0.7.Final</hibernate.version> <!-- same version on Wildfly 10 -->
+        
+        <jclouds.version>1.9.2</jclouds.version>
+        <azure-storage.version>4.2.0</azure-storage.version>
+        <aws.version>1.11.3</aws.version>
     </properties>
     
     <dependencies>
@@ -71,7 +73,12 @@
         <dependency>
             <groupId>com.amazonaws</groupId>
             <artifactId>aws-java-sdk-s3</artifactId>
-            <version>${aws-s3.version}</version>
+            <version>${aws.version}</version>
+        </dependency> 
+        <dependency>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>aws-java-sdk-sqs</artifactId>
+            <version>${aws.version}</version>
         </dependency> 
         
         <!-- EclipseLink -->

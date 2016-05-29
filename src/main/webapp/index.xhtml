@@ -3,7 +3,8 @@
     xmlns="http://www.w3.org/1999/xhtml"
     xmlns:f="http://xmlns.jcp.org/jsf/core"
     xmlns:h="http://xmlns.jcp.org/jsf/html"
-    xmlns:ui="http://xmlns.jcp.org/jsf/facelets">
+    xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+    xmlns:p="http://primefaces.org/ui">
 
     <ui:define name="title">
         Cloud Tester Web
@@ -11,7 +12,19 @@
 
     <ui:define name="content">
         <h1>Cloud Tester Web</h1>
-        <p>Select a Service to Start!</p>
+        <p>Select a <b>Service</b> to Start!</p>
+
+        <br />
+        <br />
+
+        <p>JPQL Tester:</p>
+        <h:form>
+            <p:growl id="messages" showDetail="true" autoUpdate="true" globalOnly="true" />
+            <p:inputTextarea cols="70" rows="25" value="#{indexController.jpql}" styleClass="font-monospace" />
+            <br />
+            <p:commandButton actionListener="#{indexController.executeQuery()}" value="Query" />
+            <p:commandButton actionListener="#{indexController.executeUpdate()}" value="Update" />
+        </h:form>
     </ui:define>
 </ui:composition>
 

@@ -102,8 +102,8 @@
                             <p:column headerText="Api" >
                                 <h:outputText value="#{test.api}" />
                             </p:column>
-                            <p:column headerText="Service" >
-                                <h:outputText value="#{test.service}" />
+                            <p:column headerText="Feature" >
+                                <h:outputText value="#{test.feature}" />
                             </p:column>
                             <p:column headerText="Container name" >
                                 <h:outputText value="#{test.containerName}" />
@@ -141,7 +141,7 @@
                                             <h:outputText value="#{exec.success}" />
                                         </p:column>
                                         <p:column >
-                                            <p:commandButton icon="fa fa-search" title="View error" update="messages" ajax="true" rendered="#{!exec.success}"
+                                            <p:commandButton icon="fa fa-bullhorn" title="View error" update="messages" ajax="true" rendered="#{!exec.success}"
                                                              actionListener="#{storageController.viewError(exec)}" onsuccess="PF('dialogErrorVar').show();" />
 
                                         </p:column>
@@ -158,7 +158,8 @@
         <p:dialog header="Error message" widgetVar="dialogErrorVar" minHeight="40" modal="true" 
                   appendTo="@(body)" onShow="dialogErrorVarOpen();" >
             <h:form>
-                <p:inputTextarea readonly="true" value="#{storageController.errorMessage}" cols="100" rows="20" autoResize="false"  />
+                <p:inputTextarea readonly="true" value="#{storageController.errorMessage}" 
+                                 cols="100" rows="20" autoResize="false" styleClass="font-monospace"  />
                 <p:remoteCommand name="dialogErrorVarOpen" update="@form"  />
             </h:form>
         </p:dialog>

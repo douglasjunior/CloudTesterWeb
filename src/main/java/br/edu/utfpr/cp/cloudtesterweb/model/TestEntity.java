@@ -12,10 +12,6 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.Index;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.NamedQueries;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
@@ -24,12 +20,7 @@ import javax.persistence.Table;
  * @author Douglas
  */
 @Entity
-@Table(name = "test",
-        indexes = {
-            @Index(columnList = "file_id", name = "idx_test_file_id")
-        }
-)
-@NamedQueries({})
+@Table(name = "test")
 public class TestEntity implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -37,16 +28,12 @@ public class TestEntity implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @JoinColumn(name = "file_id", nullable = false)
-    @ManyToOne(optional = false)
-    private FileEntity file;
-
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private ApiType api;
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    private ServiceType service;
+    private FeatureType feature;
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private PlatformType platform;
@@ -56,11 +43,10 @@ public class TestEntity implements Serializable {
     @OneToMany(mappedBy = "test", orphanRemoval = true, cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
     private List<TestExecutionEntity> executions;
 
-    public TestEntity(FileEntity file, PlatformType platform, ApiType api, ServiceType service, String containerName) {
+    public TestEntity(PlatformType platform, ApiType api, FeatureType feature, String containerName) {
         this();
-        this.file = file;
         this.api = api;
-        this.service = service;
+        this.feature = feature;
         this.platform = platform;
         this.containerName = containerName;
     }
@@ -77,14 +63,6 @@ public class TestEntity implements Serializable {
         this.id = id;
     }
 
-    public FileEntity getFile() {
-        return file;
-    }
-
-    public void setFile(FileEntity file) {
-        this.file = file;
-    }
-
     public ApiType getApi() {
         return api;
     }
@@ -93,12 +71,12 @@ public class TestEntity implements Serializable {
         this.api = api;
     }
 
-    public ServiceType getService() {
-        return service;
+    public FeatureType getFeature() {
+        return feature;
     }
 
-    public void setService(ServiceType service) {
-        this.service = service;
+    public void setFeature(FeatureType feature) {
+        this.feature = feature;
     }
 
     public PlatformType getPlatform() {

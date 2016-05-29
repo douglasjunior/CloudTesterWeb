@@ -33,6 +33,16 @@ abstract class Dao implements Serializable {
         return query;
     }
 
+    public Query createQuery(String jqpl, String[] params, Object[] values) {
+        Query query = getEM().createQuery(jqpl);
+        applyParameters(query, params, values);
+        return query;
+    }
+
+    public Query createQuery(String jqpl) {
+        return createQuery(jqpl, null, null);
+    }
+
     public void update(Object entity) {
         getEM().merge(entity);
     }

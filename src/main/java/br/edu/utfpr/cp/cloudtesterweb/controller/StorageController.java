@@ -2,8 +2,11 @@ package br.edu.utfpr.cp.cloudtesterweb.controller;
 
 import br.edu.utfpr.cp.cloudtesterweb.csv.StorageHeaders;
 import br.edu.utfpr.cp.cloudtesterweb.dao.DaoStatefull;
+import br.edu.utfpr.cp.cloudtesterweb.model.ApiType;
 import br.edu.utfpr.cp.cloudtesterweb.model.ErrorMessageEntity;
-import br.edu.utfpr.cp.cloudtesterweb.model.FileEntity;
+import br.edu.utfpr.cp.cloudtesterweb.model.FeatureType;
+import br.edu.utfpr.cp.cloudtesterweb.model.StorageEntity;
+import br.edu.utfpr.cp.cloudtesterweb.model.PlatformType;
 import br.edu.utfpr.cp.cloudtesterweb.model.TestEntity;
 import br.edu.utfpr.cp.cloudtesterweb.model.TestExecutionEntity;
 import java.io.File;
@@ -15,15 +18,16 @@ import javax.faces.application.FacesMessage;
 import javax.faces.context.FacesContext;
 import javax.inject.Named;
 import javax.faces.view.ViewScoped;
-import javax.inject.Inject;
 import javax.transaction.UserTransaction;
 import org.primefaces.model.UploadedFile;
 import static br.edu.utfpr.cp.cloudtesterweb.util.Constants.*;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.Date;
 import java.util.List;
+import javax.ejb.EJB;
 import javax.transaction.Transactional;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
@@ -39,13 +43,13 @@ import org.primefaces.model.StreamedContent;
 @ViewScoped
 public class StorageController implements Serializable {
 
-    @Inject
+    @EJB
     private DaoStatefull dao;
 
     @Resource
     private UserTransaction tx;
 
-    private List<FileEntity> files;
+    private List<StorageEntity> storages;
     private String errorMessage = "";
     private UploadedFile uploadedFile;
     private int times = 1;
@@ -55,24 +59,18 @@ public class StorageController implements Serializable {
 
     public void upload() {
         try {
+            File fileOut = copyFile();
             tx.begin();
-            File directory = new File(UPLOADED_FOLDER);
-            directory.mkdirs();
-            File fileOut = new File(directory, uploadedFile.getFileName());
-            try (FileOutputStream fos = new FileOutputStream(fileOut);
-                    InputStream is = uploadedFile.getInputstream();) {
-                IOUtils.copy(is, fos);
-            }
-            FileEntity entity = new FileEntity();
+            StorageEntity entity = new StorageEntity();
             entity.setDateTime(new Date());
             entity.setName(uploadedFile.getFileName());
             entity.setContentLength(uploadedFile.getSize());
             entity.setContentType(uploadedFile.getContentType());
             entity.setContentPath(fileOut.getAbsolutePath());
-            entity.setTestTimesConfig(times);
+            entity.setConfigTestTimes(times);
             dao.insert(entity);
             tx.commit();
-            files.add(entity);
+            storages.add(entity);
             FacesMessage message = new FacesMessage(FacesMessage.SEVERITY_INFO, "Succesful", uploadedFile.getFileName() + " is uploaded.");
             FacesContext.getCurrentInstance().addMessage(null, message);
         } catch (Exception ex) {
@@ -87,15 +85,15 @@ public class StorageController implements Serializable {
         }
     }
 
-    public void delete(FileEntity file) {
-        System.out.println("Delete: " + file);
+    public void delete(StorageEntity storage) {
+        System.out.println("Delete: " + storage);
         try {
             tx.begin();
-            dao.createNamedQuery(ErrorMessageEntity.DELETE_BY_FILE, new String[]{"file"}, new Object[]{file}).executeUpdate();
-            dao.delete(file);
+            dao.createNamedQuery(ErrorMessageEntity.DELETE_BY_FILE, new String[]{"sotrageId"}, new Object[]{storage.getId()}).executeUpdate();
+            dao.delete(storage);
             tx.commit();
-            files.remove(file);
-            FacesMessage message = new FacesMessage(FacesMessage.SEVERITY_INFO, "Succesful", file.getName() + " deleted.");
+            storages.remove(storage);
+            FacesMessage message = new FacesMessage(FacesMessage.SEVERITY_INFO, "Succesful", storage.getName() + " deleted.");
             FacesContext.getCurrentInstance().addMessage(null, message);
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -104,26 +102,25 @@ public class StorageController implements Serializable {
             } catch (Exception ex1) {
                 ex1.printStackTrace();
             }
-            FacesMessage message = new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", file.getName() + " is not deleted.");
+            FacesMessage message = new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", storage.getName() + " is not deleted.");
             FacesContext.getCurrentInstance().addMessage(null, message);
         }
     }
 
     @Transactional(value = Transactional.TxType.REQUIRED, rollbackOn = {Throwable.class})
-    public List<FileEntity> getFiles() {
-        if (files == null) {
+    public List<StorageEntity> getFiles() {
+        if (storages == null) {
             refresh();
         }
-        return files;
+        return storages;
     }
 
     @Transactional(value = Transactional.TxType.REQUIRED, rollbackOn = {Throwable.class})
     public void refresh() {
-        files = dao.createNamedQuery(FileEntity.FIND_ALL, FileEntity.class).getResultList();
-        dao.refreshAll(files);
+        storages = dao.createNamedQuery(StorageEntity.FIND_ALL, StorageEntity.class).getResultList();
+        dao.refreshAll(storages);
     }
 
-    @Transactional(value = Transactional.TxType.REQUIRED, rollbackOn = {Throwable.class})
     public void viewError(TestExecutionEntity exec) {
         ErrorMessageEntity error = dao.findById(ErrorMessageEntity.class, exec.getErrorMessageId());
         if (error != null) {
@@ -133,8 +130,7 @@ public class StorageController implements Serializable {
         }
     }
 
-    @Transactional(value = Transactional.TxType.REQUIRED, rollbackOn = {Throwable.class})
-    public StreamedContent downloadCSV(FileEntity file) {
+    public StreamedContent downloadCSV(StorageEntity file) {
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
                 OutputStreamWriter osw = new OutputStreamWriter(baos);
                 CSVPrinter printer = CSVFormat.DEFAULT.withHeader(StorageHeaders.class).print(osw)) {
@@ -143,7 +139,7 @@ public class StorageController implements Serializable {
                 for (TestExecutionEntity exec : test.getExecutions()) {
                     printer.print(test.getPlatform());
                     printer.print(test.getApi());
-                    printer.print(test.getService());
+                    printer.print(test.getFeature());
                     printer.print(exec.getDuration());
                     printer.print(exec.getSuccess());
                     printer.println();
@@ -181,4 +177,16 @@ public class StorageController implements Serializable {
     public String getErrorMessage() {
         return errorMessage;
     }
+
+    private File copyFile() throws IOException {
+        File directory = new File(UPLOADED_FOLDER);
+        directory.mkdirs();
+        File fileOut = new File(directory, uploadedFile.getFileName());
+        try (FileOutputStream fos = new FileOutputStream(fileOut);
+                InputStream is = uploadedFile.getInputstream();) {
+            IOUtils.copy(is, fos);
+        }
+        return fileOut;
+    }
+
 }

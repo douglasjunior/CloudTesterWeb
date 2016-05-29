@@ -14,11 +14,12 @@ import javax.persistence.Table;
  *
  * @author Douglas
  */
-@Entity 
-@Table(name = "errorMessage")
+@Entity
+@Table(name = "error_message")
 @NamedQueries({
     @NamedQuery(name = ErrorMessageEntity.DELETE_BY_FILE,
-            query = "DELETE FROM ErrorMessageEntity e WHERE EXISTS (SELECT t FROM TestExecutionEntity t WHERE t.test.file = :file AND t.errorMessageId = e.id)")
+            query = "DELETE FROM ErrorMessageEntity e WHERE e.id IN "
+            + "(SELECT x.errorMessageId FROM StorageEntity s JOIN s.tests t JOIN t.executions x WHERE s.id = :sotrageId)")
 })
 public class ErrorMessageEntity implements Serializable {
 
