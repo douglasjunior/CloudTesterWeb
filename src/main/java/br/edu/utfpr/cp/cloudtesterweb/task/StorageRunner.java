@@ -3,13 +3,13 @@ package br.edu.utfpr.cp.cloudtesterweb.task;
 import br.edu.utfpr.cp.cloudtester.tool.ServiceManagerFactory;
 import br.edu.utfpr.cp.cloudtester.tool.Resource;
 import br.edu.utfpr.cp.cloudtester.tool.ResourceFile;
-import br.edu.utfpr.cp.cloudtesterweb.controller.ApiController;
+import br.edu.utfpr.cp.cloudtesterweb.controller.CloudController;
 import br.edu.utfpr.cp.cloudtesterweb.dao.DaoStateless;
 import br.edu.utfpr.cp.cloudtesterweb.model.ApiType;
 import br.edu.utfpr.cp.cloudtesterweb.model.TestEntity;
 import br.edu.utfpr.cp.cloudtesterweb.model.StorageEntity;
 import br.edu.utfpr.cp.cloudtesterweb.model.PlatformType;
-import br.edu.utfpr.cp.cloudtesterweb.model.ApiConfiguration;
+import br.edu.utfpr.cp.cloudtesterweb.model.CloudConfiguration;
 import br.edu.utfpr.cp.cloudtesterweb.model.ErrorMessageEntity;
 import br.edu.utfpr.cp.cloudtesterweb.model.TestExecutionEntity;
 import java.io.Serializable;
@@ -38,7 +38,7 @@ public class StorageRunner implements Serializable {
     private EJBContext context;
 
     @Inject
-    private ApiController configurationController;
+    private CloudController cloudController;
 
     @Inject
     private DaoStateless dao;
@@ -51,7 +51,7 @@ public class StorageRunner implements Serializable {
             if (!storages.isEmpty()) {
                 StorageEntity storage = storages.get(0);
                 // percorre cada configuração para execução
-                for (ApiConfiguration config : configurationController.getConfigurations()) {
+                for (CloudConfiguration config : cloudController.getConfigurations()) {
                     ServiceManagerFactory factory = config.getFactory();
                     PlatformType platform = config.getPlatform();
                     ApiType api = config.getApi();

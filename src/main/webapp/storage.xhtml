@@ -17,19 +17,51 @@
     <ui:define name="content">
         <h2>Storage</h2>
         <br />
-        <p:growl id="messages" showDetail="true" globalOnly="true" />
-        <h:form enctype="multipart/form-data">
+        <p:growl id="messages" showDetail="true" globalOnly="true" autoUpdate="true" />
+
+        <h2>Filter</h2>
+        <h:form id="formFilter" >
+            <h:panelGrid columns="2" >
+                <p:outputLabel for="apis" value="APIs" />
+                <p:selectManyCheckbox id="apis" value="#{storageController.selectedApis}" layout="grid" columns="4" converter="#{storageController.apiConverter}" >
+                    <f:selectItems value="#{storageController.apis}" var="api" itemLabel="#{api}" itemValue="#{api}" />
+                    <p:ajax process="@form" update="@form" listener="#{storageController.updateConfigurations}" />
+                </p:selectManyCheckbox>
+
+                <p:outputLabel for="platforms" value="Platforms" />
+                <p:selectManyCheckbox id="platforms" value="#{storageController.selectedPlatforms}" layout="grid" columns="4" converter="#{storageController.platformConverter}" >
+                    <f:selectItems value="#{storageController.platforms}" var="platform" itemLabel="#{platform}" itemValue="#{platform}" />
+                    <p:ajax process="@form" update="@form" listener="#{storageController.updateConfigurations}" />
+                </p:selectManyCheckbox>
+
+                <p:outputLabel for="features" value="Features" />
+                <p:selectManyCheckbox id="features" value="#{storageController.selectedFeatures}" layout="grid" columns="4" converter="#{storageController.featureConverter}" >
+                    <f:selectItems value="#{storageController.features}" var="feature" itemLabel="#{feature}" itemValue="#{feature}" />
+                    <p:ajax process="@form" update="@form" listener="#{storageController.updateConfigurations}" />
+                </p:selectManyCheckbox>
+            </h:panelGrid>
+            <p:outputLabel for="configurations" value="Configurations" />
+            <p:dataList id="configurations" value="#{storageController.configurations}" var="config" type="unordered"
+                        emptyMessage="No options selected in filter" >
+                #{config.api}, #{config.platform}, #{config.featuresToString}, #{config.containerName}
+            </p:dataList>
+        </h:form>
+        <br />
+        <h2>File</h2>
+        <h:form id="storageForm" enctype="multipart/form-data">
             <h:panelGrid columns="3" >
                 <p:outputLabel for="file" value="Select file" />
-                <p:fileUpload id="file" value="#{storageController.file}" required="true" mode="simple" skinSimple="true" />
+                <h:inputFile id="file" value="#{storageController.uploadedFile}" rendered="true" />
                 <p:message for="file" display="icon" />
 
-                <p:outputLabel for="testTime" value="Test times" />
-                <p:inputText id="testTime" type="number" value="#{storageController.times}" required="true" />
-                <p:message for="testTime" display="icon" />
+                <p:outputLabel for="testTimes" value="Test times" />
+                <p:inputText id="testTimes" type="number" value="#{storageController.times}" required="true" />
+                <p:message for="testTimes" display="icon" />
 
                 <p:spacer /> 
-                <p:commandButton value="Submit" ajax="false" actionListener="#{storageController.upload}" update="messages" />
+                <p:commandButton value="Submit" ajax="false" action="#{storageController.upload}" >
+                    <f:ajax execute="@form" render="@form filesDataTable" />
+                </p:commandButton>
             </h:panelGrid>
         </h:form>
         <br />
@@ -78,10 +110,10 @@
                 </p:column>
 
                 <p:column  >
-                    <p:commandButton actionListener="#{storageController.delete(file)}" icon="fa fa-trash" update=":filesDataTable:files messages" title="Delete" >
+                    <p:commandButton actionListener="#{storageController.delete(file)}" icon="fa fa-trash" update=":filesDataTable:files" title="Delete" >
                         <p:confirm header="Confirmation" message="Are you sure?" icon="ui-icon-alert" />
                     </p:commandButton>
-                    <p:commandButton ajax="false" onclick="PrimeFaces.monitorDownload(start, stop);" icon="fa fa-download" title="Download CSV" update="messages">
+                    <p:commandButton ajax="false" onclick="PrimeFaces.monitorDownload(start, stop);" icon="fa fa-download" title="Download CSV" >
                         <p:fileDownload value="#{storageController.downloadCSV(file)}" />
                     </p:commandButton>
                 </p:column>
@@ -141,7 +173,7 @@
                                             <h:outputText value="#{exec.success}" />
                                         </p:column>
                                         <p:column >
-                                            <p:commandButton icon="fa fa-bullhorn" title="View error" update="messages" ajax="true" rendered="#{!exec.success}"
+                                            <p:commandButton icon="fa fa-bullhorn" title="View error"  ajax="true" rendered="#{!exec.success}"
                                                              actionListener="#{storageController.viewError(exec)}" onsuccess="PF('dialogErrorVar').show();" />
 
                                         </p:column>

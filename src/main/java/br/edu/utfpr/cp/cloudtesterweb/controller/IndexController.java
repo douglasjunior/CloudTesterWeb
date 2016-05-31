@@ -1,13 +1,13 @@
 package br.edu.utfpr.cp.cloudtesterweb.controller;
 
-import br.edu.utfpr.cp.cloudtesterweb.dao.DaoStateless;
+import br.edu.utfpr.cp.cloudtesterweb.dao.DaoStatefull;
 import java.io.Serializable;
 import java.util.List;
+import javax.ejb.EJB;
 import javax.faces.application.FacesMessage;
 import javax.faces.context.FacesContext;
 import javax.inject.Named;
 import javax.faces.view.ViewScoped;
-import javax.inject.Inject;
 import javax.transaction.Transactional;
 
 /**
@@ -18,8 +18,8 @@ import javax.transaction.Transactional;
 @ViewScoped
 public class IndexController implements Serializable {
 
-    @Inject
-    private DaoStateless dao;
+    @EJB
+    private DaoStatefull dao;
 
     private String jpql = "";
 

@@ -7,7 +7,7 @@ import br.edu.utfpr.cp.cloudtester.tool.Authentication;
 import br.edu.utfpr.cp.cloudtester.tool.ServiceManagerFactory;
 import br.edu.utfpr.cp.cloudtesterweb.model.ApiType;
 import br.edu.utfpr.cp.cloudtesterweb.model.PlatformType;
-import br.edu.utfpr.cp.cloudtesterweb.model.ApiConfiguration;
+import br.edu.utfpr.cp.cloudtesterweb.model.CloudConfiguration;
 import br.edu.utfpr.cp.cloudtesterweb.model.FeatureType;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -25,7 +25,7 @@ import javax.ejb.Startup;
  */
 @Startup
 @Singleton
-public class ApiController {
+public class CloudController {
 
     private static final String PROP_IDENTITY_AZURE = "IDENTITY_AZURE";
     private static final String PROP_CREDENTIAL_AZURE = "CREDENTIAL_AZURE";
@@ -42,7 +42,7 @@ public class ApiController {
 
     private final Properties credentials = new Properties();
 
-    private final List<ApiConfiguration> configurations = new ArrayList<>();
+    private final List<CloudConfiguration> configurations = new ArrayList<>();
 
     @PostConstruct
     private void startup() {
@@ -100,16 +100,16 @@ public class ApiController {
     }
 
     private void addConfiguration(ServiceManagerFactory factory, String containerName, PlatformType platform, ApiType api, FeatureType... features) {
-        configurations.add(new ApiConfiguration(factory, containerName, platform, api, features));
+        configurations.add(new CloudConfiguration(factory, containerName, platform, api, features));
     }
 
-    public List<ApiConfiguration> getConfigurations() {
+    public List<CloudConfiguration> getConfigurations() {
         return new ArrayList<>(configurations);
     }
 
-    public List<ApiConfiguration> getConfigurations(List<PlatformType> platforms, List<ApiType> apis, List<FeatureType> features) {
-        List<ApiConfiguration> configs = new ArrayList<>();
-        for (ApiConfiguration conf : configurations) {
+    public List<CloudConfiguration> getConfigurations(List<PlatformType> platforms, List<ApiType> apis, List<FeatureType> features) {
+        List<CloudConfiguration> configs = new ArrayList<>();
+        for (CloudConfiguration conf : configurations) {
             if (platforms.contains(conf.getPlatform())
                     && apis.contains(conf.getApi())
                     && features.containsAll(Arrays.asList(conf.getFeatures()))) {
@@ -117,6 +117,15 @@ public class ApiController {
             }
         }
         return configs;
+    }
+
+    public CloudConfiguration getConfiguration(PlatformType platform, ApiType api, FeatureType feature) {
+        for (CloudConfiguration config : configurations) {
+            if (config.match(platform, api, feature)) {
+                return config;
+            }
+        }
+        return null;
     }
 
 }

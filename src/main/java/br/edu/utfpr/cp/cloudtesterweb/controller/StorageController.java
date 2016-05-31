@@ -3,6 +3,7 @@ package br.edu.utfpr.cp.cloudtesterweb.controller;
 import br.edu.utfpr.cp.cloudtesterweb.csv.StorageHeaders;
 import br.edu.utfpr.cp.cloudtesterweb.dao.DaoStatefull;
 import br.edu.utfpr.cp.cloudtesterweb.model.ApiType;
+import br.edu.utfpr.cp.cloudtesterweb.model.CloudConfiguration;
 import br.edu.utfpr.cp.cloudtesterweb.model.ErrorMessageEntity;
 import br.edu.utfpr.cp.cloudtesterweb.model.FeatureType;
 import br.edu.utfpr.cp.cloudtesterweb.model.StorageEntity;
@@ -19,14 +20,17 @@ import javax.faces.context.FacesContext;
 import javax.inject.Named;
 import javax.faces.view.ViewScoped;
 import javax.transaction.UserTransaction;
-import org.primefaces.model.UploadedFile;
 import static br.edu.utfpr.cp.cloudtesterweb.util.Constants.*;
+import br.edu.utfpr.cp.cloudtesterweb.util.EnumConverter;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import javax.ejb.EJB;
 import javax.transaction.Transactional;
 import org.apache.commons.csv.CSVFormat;
@@ -34,6 +38,7 @@ import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.io.IOUtils;
 import org.primefaces.model.DefaultStreamedContent;
 import org.primefaces.model.StreamedContent;
+import javax.servlet.http.Part;
 
 /**
  *
@@ -43,27 +48,41 @@ import org.primefaces.model.StreamedContent;
 @ViewScoped
 public class StorageController implements Serializable {
 
+    public static EnumConverter<ApiType> API_CONVERTER = new EnumConverter<>(ApiType.values());
+    public static EnumConverter<PlatformType> PLATFORM_CONVERTER = new EnumConverter<>(PlatformType.values());
+    public static EnumConverter<FeatureType> FEATURE_CONVERTER = new EnumConverter<>(FeatureType.values());
+
     @EJB
     private DaoStatefull dao;
+
+    @EJB
+    private CloudController cloudController;
 
     @Resource
     private UserTransaction tx;
 
     private List<StorageEntity> storages;
     private String errorMessage = "";
-    private UploadedFile uploadedFile;
+    private Part uploadedFile;
     private int times = 1;
+
+    private List<ApiType> selectedApis = new ArrayList<>();
+    private List<PlatformType> selectedPlatforms = new ArrayList<>();
+    private List<FeatureType> selectedFeatures = new ArrayList<>();
+
+    private final Set<CloudConfiguration> configurations = new LinkedHashSet<>();
 
     public StorageController() {
     }
 
     public void upload() {
         try {
+            System.out.println("Times: " + times);
             File fileOut = copyFile();
             tx.begin();
             StorageEntity entity = new StorageEntity();
             entity.setDateTime(new Date());
-            entity.setName(uploadedFile.getFileName());
+            entity.setName(uploadedFile.getSubmittedFileName());
             entity.setContentLength(uploadedFile.getSize());
             entity.setContentType(uploadedFile.getContentType());
             entity.setContentPath(fileOut.getAbsolutePath());
@@ -71,7 +90,7 @@ public class StorageController implements Serializable {
             dao.insert(entity);
             tx.commit();
             storages.add(entity);
-            FacesMessage message = new FacesMessage(FacesMessage.SEVERITY_INFO, "Succesful", uploadedFile.getFileName() + " is uploaded.");
+            FacesMessage message = new FacesMessage(FacesMessage.SEVERITY_INFO, "Succesful", uploadedFile.getSubmittedFileName() + " is uploaded.");
             FacesContext.getCurrentInstance().addMessage(null, message);
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -80,7 +99,8 @@ public class StorageController implements Serializable {
             } catch (Exception ex1) {
                 ex1.printStackTrace();
             }
-            FacesMessage message = new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", uploadedFile.getFileName() + " is not uploaded.");
+            String name = uploadedFile != null ? uploadedFile.getSubmittedFileName() : "File";
+            FacesMessage message = new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", name + " is not uploaded.");
             FacesContext.getCurrentInstance().addMessage(null, message);
         }
     }
@@ -105,6 +125,27 @@ public class StorageController implements Serializable {
             FacesMessage message = new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", storage.getName() + " is not deleted.");
             FacesContext.getCurrentInstance().addMessage(null, message);
         }
+    }
+
+    public void updateConfigurations() {
+        System.out.println("Apis: " + selectedApis);
+        System.out.println("Platforms: " + selectedPlatforms);
+        System.out.println("Features: " + selectedFeatures);
+        configurations.clear();
+        for (ApiType api : selectedApis) {
+            for (PlatformType platform : selectedPlatforms) {
+                for (FeatureType feature : selectedFeatures) {
+                    CloudConfiguration config = cloudController.getConfiguration(
+                            (platform),
+                            (api),
+                            (feature));
+                    if (config != null) {
+                        configurations.add(config);
+                    }
+                }
+            }
+        }
+
     }
 
     @Transactional(value = Transactional.TxType.REQUIRED, rollbackOn = {Throwable.class})
@@ -158,20 +199,20 @@ public class StorageController implements Serializable {
         return null;
     }
 
-    public UploadedFile getFile() {
-        return uploadedFile;
-    }
-
-    public void setFile(UploadedFile file) {
-        this.uploadedFile = file;
-    }
-
     public int getTimes() {
         return times;
     }
 
     public void setTimes(int times) {
         this.times = times;
+    }
+
+    public Part getUploadedFile() {
+        return uploadedFile;
+    }
+
+    public void setUploadedFile(Part uploadedFile) {
+        this.uploadedFile = uploadedFile;
     }
 
     public String getErrorMessage() {
@@ -181,12 +222,72 @@ public class StorageController implements Serializable {
     private File copyFile() throws IOException {
         File directory = new File(UPLOADED_FOLDER);
         directory.mkdirs();
-        File fileOut = new File(directory, uploadedFile.getFileName());
+        File fileOut = new File(directory, uploadedFile.getSubmittedFileName());
         try (FileOutputStream fos = new FileOutputStream(fileOut);
-                InputStream is = uploadedFile.getInputstream();) {
+                InputStream is = uploadedFile.getInputStream();) {
             IOUtils.copy(is, fos);
         }
         return fileOut;
     }
+
+    private static final FeatureType[] FEATURES = {FeatureType.STORAGE_UPLOAD, FeatureType.STORAGE_DOWNLOAD, FeatureType.STORAGE_LIST};
+
+    public FeatureType[] getFeatures() {
+        return FEATURES;
+    }
+
+    private static final ApiType[] APIS = {ApiType.AWS_NATIVE, ApiType.AZURE_NATIVE, ApiType.JCLOUDS};
+
+    public ApiType[] getApis() {
+        return APIS;
+    }
+
+    private static final PlatformType[] PLATFORMS = {PlatformType.AWS, PlatformType.AZURE};
+
+    public PlatformType[] getPlatforms() {
+        return PLATFORMS;
+    }
+
+    public void setSelectedFeatures(List<FeatureType> selectedFeatures) {
+        this.selectedFeatures = selectedFeatures;
+    }
+
+    public List<FeatureType> getSelectedFeatures() {
+        return selectedFeatures;
+    }
+
+    public List<ApiType> getSelectedApis() {
+        return selectedApis;
+    }
+
+    public void setSelectedApis(List<ApiType> selectedApis) {
+        this.selectedApis = selectedApis;
+    }
+
+    public List<PlatformType> getSelectedPlatforms() {
+        return selectedPlatforms;
+    }
+
+    public void setSelectedPlatforms(List<PlatformType> selectedPlatforms) {
+        this.selectedPlatforms = selectedPlatforms;
+    }
+
+    public Set<CloudConfiguration> getConfigurations() {
+        return configurations;
+    }
+
+    public EnumConverter<ApiType> getApiConverter() {
+        return API_CONVERTER;
+    }
+
+    public EnumConverter<PlatformType> getPlatformConverter() {
+        return PLATFORM_CONVERTER;
+    }
+
+    public EnumConverter<FeatureType> getFeatureConverter() {
+        return FEATURE_CONVERTER;
+    }
+
+ 
 
 }
