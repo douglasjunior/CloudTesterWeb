@@ -16,7 +16,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import javax.ejb.EJBContext;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionManagement;
 import javax.ejb.TransactionManagementType;
@@ -35,7 +34,7 @@ import br.edu.utfpr.cp.cloudtesterweb.model.FeatureType;
 public class StorageRunner implements Serializable {
 
     @javax.annotation.Resource
-    private EJBContext context;
+    private UserTransaction tx;
 
     @Inject
     private CloudController cloudController;
@@ -44,25 +43,27 @@ public class StorageRunner implements Serializable {
     private DaoStateless dao;
 
     public void run() {
-        UserTransaction tx = context.getUserTransaction();
         try {
             tx.begin();
             List<StorageEntity> storages = dao.createNamedQuery(StorageEntity.FIND_TO_EXECUTE, StorageEntity.class).getResultList();
             if (!storages.isEmpty()) {
                 StorageEntity storage = storages.get(0);
                 // percorre cada configuração para execução
-                for (CloudConfiguration config : cloudController.getConfigurations()) {
-                    ServiceManagerFactory factory = config.getFactory();
-                    PlatformType platform = config.getPlatform();
-                    ApiType api = config.getApi();
-                    String containerName = config.getContainerName();
-                    // percorre cada feature configurada
-                    for (FeatureType feature : config.getFeatures()) {
-                        TestEntity test = new TestEntity(platform, api, feature, containerName);
-                        dao.insert(test);
-                        storage.addTest(test);
-                        dao.update(storage);
-                        executeTest(storage, test, factory);
+                for (ApiType api : new ArrayList<>(storage.getConfigTestApis())) {
+                    for (PlatformType platform : new ArrayList<>(storage.getConfigTestPlatforms())) {
+                        for (FeatureType feature : new ArrayList<>(storage.getConfigTestFeatures())) {
+                            CloudConfiguration config = cloudController.getConfiguration(platform, api, feature);
+                            if (config != null) {
+                                ServiceManagerFactory factory = config.getFactory();
+                                String containerName = config.getContainerName();
+
+                                TestEntity test = new TestEntity(platform, api, feature, containerName);
+                                dao.insert(test);
+                                storage.addTest(test);
+                                dao.update(storage);
+                                executeTest(storage, test, factory);
+                            }
+                        }
                     }
                 }
                 storage.setCompleted(true);
@@ -79,17 +80,6 @@ public class StorageRunner implements Serializable {
     }
 
     private void executeTest(StorageEntity storage, TestEntity test, ServiceManagerFactory factory) {
-        switch (test.getFeature()) {
-            case STORAGE_DOWNLOAD:
-                downloadUploadTest(storage, test, factory);
-                break;
-            case STORAGE_UPLOAD:
-                downloadUploadTest(storage, test, factory);
-                break;
-        }
-    }
-
-    private void downloadUploadTest(StorageEntity storage, TestEntity test, ServiceManagerFactory factory) {
         System.out.println("Testing " + test.getFeature() + " feature in " + factory);
         Date start = null, end = null;
         List<TestExecutionEntity> executions = new ArrayList<>();
@@ -98,15 +88,26 @@ public class StorageRunner implements Serializable {
                 TestExecutionEntity exec = new TestExecutionEntity();
                 exec.setTest(test);
                 try {
-                    Resource resource = new ResourceFile(storage.getContentPath());
+                    Resource resource = new ResourceFile(storage.getFilePath());
                     start = new Date();
-                    if (test.getFeature() == FeatureType.STORAGE_UPLOAD) {
-                        storeManager.stores(resource, test.getContainerName());
-                    } else {
-                        storeManager.retrieves(storage.getName(), test.getContainerName());
+                    switch (test.getFeature()) {
+                        case STORAGE_UPLOAD:
+                            storeManager.stores(resource, test.getContainerName());
+                            break;
+                        case STORAGE_DOWNLOAD:
+                            storeManager.retrieves(storage.getFileName(), test.getContainerName());
+                            break;
+                        case STORAGE_LIST:
+                            storeManager.list(test.getContainerName());
+                            break;
+                        case STORAGE_DELETE:
+                            storeManager.retrieves(storage.getFileName(), test.getContainerName());
+                            break;
+                        default:
+                            throw new IllegalArgumentException("Feature not supported.");
                     }
                     end = new Date();
-                    System.out.println(test.getFeature() + " file " + storage.getName() + " in " + diff(start, end) + " millis");
+                    System.out.println(test.getFeature() + " file " + storage.getFileName() + " in " + diff(start, end) + " millis");
                     exec.setDateTimeStart(start);
                     exec.setDateTimeEnd(end);
                     exec.setSuccess(true);

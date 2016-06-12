@@ -9,13 +9,12 @@ import br.edu.utfpr.cp.cloudtesterweb.model.ApiType;
 import br.edu.utfpr.cp.cloudtesterweb.model.PlatformType;
 import br.edu.utfpr.cp.cloudtesterweb.model.CloudConfiguration;
 import br.edu.utfpr.cp.cloudtesterweb.model.FeatureType;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
 
@@ -27,15 +26,6 @@ import javax.ejb.Startup;
 @Singleton
 public class CloudController {
 
-    private static final String PROP_IDENTITY_AZURE = "IDENTITY_AZURE";
-    private static final String PROP_CREDENTIAL_AZURE = "CREDENTIAL_AZURE";
-    private static final String PROP_CONTAINER_NAME_AZURE = "CONTAINER_NAME_AZURE";
-
-    private static final String PROP_IDENTITY_AWS = "IDENTITY_AWS";
-    private static final String PROP_CREDENTIAL_AWS = "CREDENTIAL_AWS";
-    private static final String PROP_CONTAINER_NAME_AWS = "CONTAINER_NAME_AWS";
-    private static final String PROP_REGION_AWS = "REGION_AWS";
-
     private static final String PROVIDER_AZURE_BLOB = "azureblob";
     private static final String PROVIDER_AWS_S3 = "aws-s3";
     private static final String PROVIDER_AWS_SQS = "aws-sqs";
@@ -43,60 +33,69 @@ public class CloudController {
     private final Properties credentials = new Properties();
 
     private final List<CloudConfiguration> configurations = new ArrayList<>();
+    private Authentication authAzure;
+    private String regionAzure;
+    private Authentication authAWS;
+    private String regionAws;
 
     @PostConstruct
-    private void startup() {
-        loadCredentials();
-        loadConfiguration();
-    }
-
-    @PreDestroy
-    private void shutdown() {
-    }
-
-    private void loadCredentials() {
-        ClassLoader classLoader = getClass().getClassLoader();
-        try (InputStream is = classLoader.getResourceAsStream("credentials.properties")) {
-            credentials.load(is);
-            System.out.println("Credentials: " + credentials);
+    void startup() {
+        try {
+            loadCredentials();
+            loadConfiguration();
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
     }
 
-    private void loadConfiguration() {
-        Authentication authAzure = new Authentication(
-                credentials.getProperty(PROP_IDENTITY_AZURE),
-                credentials.getProperty(PROP_CREDENTIAL_AZURE),
-                PROVIDER_AZURE_BLOB, null);
-        String containerAzure = credentials.getProperty(PROP_CONTAINER_NAME_AZURE);
+    private void loadCredentials() throws IOException {
+        try (InputStream is = getClass().getClassLoader().getResourceAsStream("credentials.properties")) {
+            credentials.load(is);
+            System.out.println("Credentials: " + credentials);
+            authAzure = new Authentication(
+                    credentials.getProperty("IDENTITY_AZURE"),
+                    credentials.getProperty("CREDENTIAL_AZURE"),
+                    PROVIDER_AZURE_BLOB, null);
+            regionAzure = "";
+            authAWS = new Authentication(
+                    credentials.getProperty("IDENTITY_AWS"),
+                    credentials.getProperty("CREDENTIAL_AWS"),
+                    PROVIDER_AWS_S3, PROVIDER_AWS_SQS);
+            regionAws = credentials.getProperty("REGION_AWS");
+        }
+    }
 
-        Authentication authAWS = new Authentication(
-                credentials.getProperty(PROP_IDENTITY_AWS),
-                credentials.getProperty(PROP_CREDENTIAL_AWS),
-                PROVIDER_AWS_S3, PROVIDER_AWS_SQS);
-        String containerAWS = credentials.getProperty(PROP_CONTAINER_NAME_AWS);
-        String regionAws = credentials.getProperty(PROP_REGION_AWS);
+    private void loadConfiguration() {
+        loadStorage();
+        //loadQueue();
+        //loadVM();
+        //loadDatabase();
+
+        System.out.println("Configurations: " + configurations);
+    }
+
+    private void loadStorage() {
+        final String containerAWS = credentials.getProperty("CONTAINER_NAME_AWS");
+        final String containerAzure = credentials.getProperty("CONTAINER_NAME_AZURE");
 
         // jclouds AZURE
         addConfiguration(new JCloudsServiceManagerFactory(authAzure, null, null), containerAzure,
                 PlatformType.AZURE, ApiType.JCLOUDS,
-                FeatureType.STORAGE_UPLOAD, FeatureType.STORAGE_DOWNLOAD
+                FeatureType.STORAGE_UPLOAD, FeatureType.STORAGE_DOWNLOAD, FeatureType.STORAGE_LIST, FeatureType.STORAGE_DELETE
         );
         // jclouds AWS
         addConfiguration(new JCloudsServiceManagerFactory(authAWS, regionAws, null), containerAWS,
                 PlatformType.AWS, ApiType.JCLOUDS,
-                FeatureType.STORAGE_UPLOAD, FeatureType.STORAGE_DOWNLOAD);
+                FeatureType.STORAGE_UPLOAD, FeatureType.STORAGE_DOWNLOAD, FeatureType.STORAGE_LIST, FeatureType.STORAGE_DELETE);
         // Azure native
         addConfiguration(new AzureServiceManagerFactory(authAzure, null), containerAzure,
                 PlatformType.AZURE, ApiType.AZURE_NATIVE,
-                FeatureType.STORAGE_UPLOAD, FeatureType.STORAGE_DOWNLOAD);
+                FeatureType.STORAGE_UPLOAD, FeatureType.STORAGE_DOWNLOAD, FeatureType.STORAGE_LIST, FeatureType.STORAGE_DELETE);
         // AWS native
         addConfiguration(new AWSServiceManagerFactory(authAWS, regionAws), containerAWS,
                 PlatformType.AWS, ApiType.AWS_NATIVE,
-                FeatureType.STORAGE_UPLOAD, FeatureType.STORAGE_DOWNLOAD);
+                FeatureType.STORAGE_UPLOAD, FeatureType.STORAGE_DOWNLOAD, FeatureType.STORAGE_LIST, FeatureType.STORAGE_DELETE);
 
-        System.out.println("Configurations: " + configurations);
     }
 
     private void addConfiguration(ServiceManagerFactory factory, String containerName, PlatformType platform, ApiType api, FeatureType... features) {
@@ -105,18 +104,6 @@ public class CloudController {
 
     public List<CloudConfiguration> getConfigurations() {
         return new ArrayList<>(configurations);
-    }
-
-    public List<CloudConfiguration> getConfigurations(List<PlatformType> platforms, List<ApiType> apis, List<FeatureType> features) {
-        List<CloudConfiguration> configs = new ArrayList<>();
-        for (CloudConfiguration conf : configurations) {
-            if (platforms.contains(conf.getPlatform())
-                    && apis.contains(conf.getApi())
-                    && features.containsAll(Arrays.asList(conf.getFeatures()))) {
-                configs.add(conf);
-            }
-        }
-        return configs;
     }
 
     public CloudConfiguration getConfiguration(PlatformType platform, ApiType api, FeatureType feature) {

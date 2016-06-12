@@ -18,7 +18,6 @@ import javax.persistence.Id;
 import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
@@ -56,13 +55,13 @@ public class StorageEntity implements Serializable {
     @Temporal(TemporalType.TIMESTAMP)
     private Date dateTime;
     @Column(nullable = false, length = 255)
-    private String name;
+    private String fileName;
     @Column(nullable = false)
-    private Long contentLength;
+    private Long fileContentLength;
     @Column(nullable = false)
-    private String contentPath;
+    private String filePath;
     @Column(nullable = false, length = 100)
-    private String contentType;
+    private String fileContentType;
     @Column(nullable = false, name = "testTimesConfig")
     private Integer configTestTimes;
 
@@ -122,40 +121,36 @@ public class StorageEntity implements Serializable {
         this.dateTime = dateTime;
     }
 
-    public String getName() {
-        return name;
+    public String getFileName() {
+        return fileName;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
     }
 
-    public Long getContentLength() {
-        return contentLength;
+    public Long getFileContentLength() {
+        return fileContentLength;
     }
 
-    public void setContentLength(Long contentLength) {
-        this.contentLength = contentLength;
+    public void setFileContentLength(Long fileContentLength) {
+        this.fileContentLength = fileContentLength;
     }
 
-    public Double getContentLengthKB() {
-        return contentLength / 1024d;
+    public String getFilePath() {
+        return filePath;
     }
 
-    public String getContentPath() {
-        return contentPath;
+    public void setFilePath(String filePath) {
+        this.filePath = filePath;
     }
 
-    public void setContentPath(String contentPath) {
-        this.contentPath = contentPath;
+    public String getFileContentType() {
+        return fileContentType;
     }
 
-    public String getContentType() {
-        return contentType;
-    }
-
-    public void setContentType(String contentType) {
-        this.contentType = contentType;
+    public void setFileContentType(String fileContentType) {
+        this.fileContentType = fileContentType;
     }
 
     public Integer getConfigTestTimes() {
@@ -170,6 +165,10 @@ public class StorageEntity implements Serializable {
         return configTestPlatforms;
     }
 
+    public String getConfigTestPlatformsAsString() {
+        return configTestPlatforms.toString();
+    }
+
     public void setConfigTestPlatforms(List<PlatformType> configTestPlatforms) {
         this.configTestPlatforms = configTestPlatforms;
     }
@@ -178,12 +177,20 @@ public class StorageEntity implements Serializable {
         return configTestApis;
     }
 
+    public String getConfigTestApisAsString() {
+        return configTestApis.toString();
+    }
+
     public void setConfigTestApis(List<ApiType> configTestApis) {
         this.configTestApis = configTestApis;
     }
 
     public List<FeatureType> getConfigTestFeatures() {
         return configTestFeatures;
+    }
+
+    public String getConfigTestFeaturesAsString() {
+        return configTestFeatures.toString();
     }
 
     public void setConfigTestFeatures(List<FeatureType> configTestFeatures) {

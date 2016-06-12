@@ -15,36 +15,47 @@
     </ui:define>
 
     <ui:define name="content">
-        <h2>Storage</h2>
-        <br />
+        <h1>Storage</h1>
+
+        <p:separator />
         <p:growl id="messages" showDetail="true" globalOnly="true" autoUpdate="true" />
 
         <h2>Filter</h2>
         <h:form id="formFilter" >
             <h:panelGrid columns="2" >
                 <p:outputLabel for="apis" value="APIs" />
-                <p:selectManyCheckbox id="apis" value="#{storageController.selectedApis}" layout="grid" columns="4" converter="#{storageController.apiConverter}" >
+                <p:selectManyCheckbox id="apis" value="#{storageController.selectedApis}" layout="grid" columns="10" converter="#{storageController.apiConverter}" >
                     <f:selectItems value="#{storageController.apis}" var="api" itemLabel="#{api}" itemValue="#{api}" />
                     <p:ajax process="@form" update="@form" listener="#{storageController.updateConfigurations}" />
                 </p:selectManyCheckbox>
 
                 <p:outputLabel for="platforms" value="Platforms" />
-                <p:selectManyCheckbox id="platforms" value="#{storageController.selectedPlatforms}" layout="grid" columns="4" converter="#{storageController.platformConverter}" >
+                <p:selectManyCheckbox id="platforms" value="#{storageController.selectedPlatforms}" layout="grid" columns="10" converter="#{storageController.platformConverter}" >
                     <f:selectItems value="#{storageController.platforms}" var="platform" itemLabel="#{platform}" itemValue="#{platform}" />
                     <p:ajax process="@form" update="@form" listener="#{storageController.updateConfigurations}" />
                 </p:selectManyCheckbox>
 
                 <p:outputLabel for="features" value="Features" />
-                <p:selectManyCheckbox id="features" value="#{storageController.selectedFeatures}" layout="grid" columns="4" converter="#{storageController.featureConverter}" >
+                <p:selectManyCheckbox id="features" value="#{storageController.selectedFeatures}" layout="grid" columns="10" converter="#{storageController.featureConverter}" >
                     <f:selectItems value="#{storageController.features}" var="feature" itemLabel="#{feature}" itemValue="#{feature}" />
                     <p:ajax process="@form" update="@form" listener="#{storageController.updateConfigurations}" />
                 </p:selectManyCheckbox>
             </h:panelGrid>
-            <p:outputLabel for="configurations" value="Configurations" />
-            <p:dataList id="configurations" value="#{storageController.configurations}" var="config" type="unordered"
-                        emptyMessage="No options selected in filter" >
-                #{config.api}, #{config.platform}, #{config.featuresToString}, #{config.containerName}
-            </p:dataList>
+            <p:dataTable id="configurations" var="config" value="#{storageController.configurations}" 
+                         emptyMessage="No configurations selected by filter" reflow="true" >
+                <p:column headerText="Api">
+                    <h:outputText value="#{config.api}" />
+                </p:column>
+                <p:column headerText="Platform">
+                    <h:outputText value="#{config.platform}" />
+                </p:column>
+                <p:column headerText="Features">
+                    <h:outputText value="#{config.featuresToString}" />
+                </p:column>
+                <p:column headerText="Container">
+                    <h:outputText value="#{config.containerName}" />
+                </p:column>
+            </p:dataTable>
         </h:form>
         <br />
         <h2>File</h2>
@@ -65,20 +76,39 @@
             </h:panelGrid>
         </h:form>
         <br />
+        <p:separator />
         <br />
-        <h2>Loaded files:</h2>
+        <h2>Records</h2>
         <h:form id="filesDataTable" >
             <p:commandButton value="Refresh" update=":filesDataTable:files" actionListener="#{storageController.refresh()}" />
-            <p:dataTable id="files" var="file" value="#{storageController.files}" style="margin-bottom:20px; width: 1000px" 
-                         emptyMessage="No files found." resizableColumns="true" tableStyle="table-layout: auto;" rowExpandMode="single"  >
+            <p:dataTable id="files" var="file" value="#{storageController.files}" emptyMessage="No files found." 
+                         tableStyle="width:auto" sortMode="single" sortBy="#{file.dateTime}" sortOrder="DESCENDING" >
                 <p:column style="width:16px">
                     <p:rowToggler />
                 </p:column>
-                <p:column sortBy="#{file.name}" >
+                <p:column sortBy="#{file.configTestApisAsString}" >
+                    <f:facet name="header">
+                        <h:outputLabel value="Api"/>
+                    </f:facet>
+                    <h:outputText value="#{file.configTestApisAsString}" />
+                </p:column> 
+                <p:column sortBy="#{file.configTestPlatformsAsString}" >
+                    <f:facet name="header">
+                        <h:outputLabel value="Platform" style="white-space:pre-line;"/>
+                    </f:facet>
+                    <h:outputText value="#{file.configTestPlatformsAsString}" />
+                </p:column> 
+                <p:column sortBy="#{file.configTestFeaturesAsString}" >
+                    <f:facet name="header">
+                        <h:outputLabel value="Feature" style="white-space:pre-line;"/>
+                    </f:facet>
+                    <h:outputText value="#{file.configTestFeaturesAsString}" />
+                </p:column> 
+                <p:column sortBy="#{file.fileName}" >
                     <f:facet name="header">
                         <h:outputLabel value="Name" style="white-space:pre-line;"/>
                     </f:facet>
-                    <h:outputText value="#{file.name}" />
+                    <h:outputText value="#{file.fileName}" />
                 </p:column> 
                 <p:column sortBy="#{file.dateTime}">
                     <f:facet name="header">
@@ -88,19 +118,19 @@
                         <f:convertDateTime pattern="dd/MM/yyyy HH:mm:ss" />
                     </h:outputText>
                 </p:column>
-                <p:column sortBy="#{file.contentLength}">
+                <p:column sortBy="#{file.fileContentLength}">
                     <f:facet name="header">
                         <h:outputLabel value="Length (KB)" style="white-space:pre-line;" />
                     </f:facet>
-                    <h:outputText value="#{file.contentLengthKB}" >
-                        <f:convertNumber pattern="###,###,###,##0.00" />
+                    <h:outputText value="#{file.fileContentLength}" >
+                        <f:convertNumber pattern="###,###,###,##0" />
                     </h:outputText>
                 </p:column>
-                <p:column sortBy="#{file.contentType}">
+                <p:column sortBy="#{file.fileContentType}">
                     <f:facet name="header">
                         <h:outputLabel value="Type" style="white-space:pre-line;" />
                     </f:facet>
-                    <h:outputText value="#{file.contentType}" />
+                    <h:outputText value="#{file.fileContentType}" />
                 </p:column>
                 <p:column sortBy="#{file.completed}">
                     <f:facet name="header">
@@ -118,12 +148,11 @@
                     </p:commandButton>
                 </p:column>
 
-
                 <p:rowExpansion>
                     <p:outputPanel style="width: 90%; padding-bottom: 20px" >
                         <h:outputText value="Tests:" />
-                        <p:dataTable var="test" value="#{file.tests}" resizableColumns="true" emptyMessage="No tests found;"
-                                     tableStyle="table-layout: auto;" sortBy="#{test.platform}" 
+                        <p:dataTable var="test" value="#{file.tests}" emptyMessage="No tests found;" sortBy="#{test.platform}" 
+                                     tableStyle="width:auto" 
                                      rowIndexVar="rowIx" rowStyleClass="#{empty rowIx or rowIx mod 2 ne 0 ? 'subtable-a-row' : 'subtable-a2-row'}" >
                             <p:column style="width:16px">
                                 <p:rowToggler />
@@ -147,8 +176,8 @@
                             <p:rowExpansion>
                                 <p:outputPanel style="width: 90%; padding-bottom: 20px" >
                                     <h:outputText value="Executions:" />
-                                    <p:dataTable var="exec" value="#{test.executions}" resizableColumns="true" emptyMessage="No executions found;"
-                                                 tableStyle="table-layout: auto;" sortBy="#{exec.dateTimeStart}" 
+                                    <p:dataTable var="exec" value="#{test.executions}" emptyMessage="No executions found;" sortBy="#{exec.dateTimeStart}" 
+                                                 tableStyle="width:auto"  
                                                  rowIndexVar="rowIx" rowStyleClass="#{empty rowIx or rowIx mod 2 ne 0 ? 'subtable-b-row' : 'subtable-b2-row'}">
                                         <p:column sortBy="#{exec.dateTimeStart}">
                                             <f:facet name="header">
@@ -186,6 +215,8 @@
                 </p:rowExpansion>
             </p:dataTable>
         </h:form>
+
+        <br /><br />
 
         <p:dialog header="Error message" widgetVar="dialogErrorVar" minHeight="40" modal="true" 
                   appendTo="@(body)" onShow="dialogErrorVarOpen();" >

@@ -9,6 +9,7 @@ public enum FeatureType {
     STORAGE_UPLOAD,
     STORAGE_DOWNLOAD,
     STORAGE_LIST,
+    STORAGE_DELETE,
     // queue
     QUEUE_CREATE_QUEUE,
     QUEUE_RETRIEVE_QUEUE,

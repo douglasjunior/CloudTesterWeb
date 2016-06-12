@@ -7,9 +7,9 @@ Implementação da biblioteca [CloudTester](https://github.com/douglasjunior/Clo
 ![Funcionalidades](https://raw.githubusercontent.com/douglasjunior/CloudTesterWeb/master/ImgProcSystem.jpg)
 
 ## APIs disponíveis
-- [jclouds](https://jclouds.apache.org/)
-- [Azure Storage](https://azure.microsoft.com/pt-br/develop/java/)
-- [Amazon AWS](https://aws.amazon.com/pt/sdk-for-java/)
+- [jclouds](https://jclouds.apache.org/) 1.9.2
+- [Azure Storage](https://azure.microsoft.com/pt-br/develop/java/) 4.2.0
+- [Amazon AWS](https://aws.amazon.com/pt/sdk-for-java/) 1.11.3
 
 ## Plataformas suportadas
 - [Microsoft Azure](https://azure.microsoft.com/pt-br/)
@@ -19,6 +19,8 @@ Implementação da biblioteca [CloudTester](https://github.com/douglasjunior/Clo
 - Armazenamento de arquivos (Blob)
  - Download
  - Upload
+ - Listagem (JClouds apresentou problema [JCLOUDS-548](https://issues.apache.org/jira/browse/JCLOUDS-548))
+ - Remoção
  
 ## Instruções de uso
 1. Crie um arquivo chamado `credentials.properties` no diretório `/src/main/resources` para armazenar os atributos de autenticação.
@@ -34,9 +36,11 @@ Implementação da biblioteca [CloudTester](https://github.com/douglasjunior/Clo
  IDENTITY_AWS = ETOEJY4S8VB2AUG5L84B #[Access Key ID criada na seção de Security Credentials]
  CREDENTIAL_AWS = 8+NeuyABHDop7WuIjP1Xs6+7mRZOhauIJgom2vWz #[Secret Access Key criada na seção de Security Credentials]
  CONTAINER_NAME_AWS = cloudtester-utfpr #[nome do Bucket criado no S3]
+ REGION_AWS = sa-east-1 #[especifica a região a trabalhar, requerido para SQS]
  ```
- *Obs: Substitua os valores de exemplo pelos valores de suas credenciais. Não compartilhe suas credenciais com terceiros.*
- 
+ *Obs: Substitua os valores de exemplo pelos valores de suas credenciais. Não compartilhe suas credenciais com terceiros.*<br>
+ *Obs²: Azure não precisa especificar região, pois a mesma já está amarrada ao Container.*
+
 2. Configure o JDBC e o Datasource no servidor `Wildfly 10`. Exemplo [aqui](https://github.com/douglasjunior/TestWildfly).
 
 3. Implante a ferramenta em um servidor `Wildfly 10 Java EE 7 Full`
@@ -44,6 +48,3 @@ Implementação da biblioteca [CloudTester](https://github.com/douglasjunior/Clo
 ## Considerações
 - Devido a uma incompatibilidade entre a `jclouds` e o `WELD`, a ferramenta não pode ser implantada no `Glassfish`, por isso a escolha do `Wildfly`.
 - A implementação `JPA` disponível no `Wildfly` por padrão é o `Hibernate`, e na tentativa de configuração do `Eclipselink` vários problemas foram encontrados. Vide [guia de referência](https://docs.jboss.org/author/display/WFLY10/JPA+Reference+Guide#JPAReferenceGuide-UsingEclipseLink)
-
- 
- 
